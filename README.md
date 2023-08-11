@@ -55,11 +55,5 @@ For those who are interested in making SMART even smarter, please fork the repos
 
 -----------------------------------
 
-Links
-Repository: https://github.com/your_username/smart-app (assuming GitHub, adjust for others)
-Issue tracker: https://github.com/your_username/smart-app/issues
-
------------------------------------
-
 Licensing
 The code in this project is licensed under MIT license.

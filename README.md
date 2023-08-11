@@ -4,6 +4,7 @@ SMART App (Stress Management Activities & Relaxation Techniques)
 
 Overview
 SMART is a holistic application designed to assist users in managing their mental well-being. Through a variety of stress-relief activities and relaxation techniques, users can find solace, set reminders, follow along with guided sessions, and monitor their progress over time.
+
 -----------------------------------
 
 Features
@@ -33,6 +34,7 @@ npm install
 
 Start the development server:
 npm start
+
 -----------------------------------
 
 Setting Up the Backend

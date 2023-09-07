@@ -1,15 +1,9 @@
-from flask import Flask
 from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, TIMESTAMP
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import validates
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import MetaData
-from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 import flask_bcrypt as bcrypt
-from flask_bcrypt import generate_password_hash, check_password_hash
-from datetime import datetime 
-from sqlalchemy import UniqueConstraint
-
 from config import db
 
 convention = {
@@ -33,27 +27,45 @@ class User(db.Model, SerializerMixin):
 
     @validates('password')
     def convert_password(self, key, password):
-        return generate_password_hash(password)
+        return bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-        return check_password_hash(self.password, password)
+        return bcrypt.check_password_hash(self.password, password)
 
 # Category Table
 class Category(db.Model, SerializerMixin):
     __tablename__ = 'categories'
-
+    
     id = Column(Integer, primary_key=True)
     name = Column(String(120), unique=True, nullable=False)
-    activities = db.relationship('Activity', backref='category', lazy=True)
+    description = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+
+    activities = db.relationship('Activity', back_populates='category', lazy=True, cascade="all, delete-orphan")
+
+    serialize_rules = ('-activities',)  # Exclude activities from serialization to prevent circular references
+
+
+    # Utility method example
+    def get_all_activities(self):
+        return [activity.name for activity in self.activities]
 
 # Activity Table
 class Activity(db.Model, SerializerMixin):
     __tablename__ = 'activities'
-
+    
     id = Column(Integer, primary_key=True)
-    name = Column(String(120), nullable=False)
+    name = Column(String(120), nullable=False, index=True)
     description = Column(String(500), nullable=True)
+    multimedia_url = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
+
+    category = db.relationship('Category', back_populates='activities')
+
+    serialize_rules = ('-category',)  # Exclude category from serialization to prevent circular references
 
 # Session Table
 class Session(db.Model, SerializerMixin):

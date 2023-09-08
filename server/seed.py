@@ -1,9 +1,10 @@
-# Local imports
+
 from config import app, db
-from models import db, Category, Activity
+from models import Category, Activity
 
 categories = {
     "Stress Management Activities": {
+        
         "Physical": [
             {"name": "Exercise", "description": "Engage in physical activity to boost mood and health."},
             {"name": "Practice Yoga", "description": "Combine physical postures and meditation for holistic health."},
@@ -36,8 +37,11 @@ categories = {
             {"name": "Eat More Greens", "description": "Incorporate more vegetables into your diet for essential nutrients."},
         ],
     },
+    
     # ------------------------------------------------------------ #
+    
     "Relaxation Techniques": {
+        
         "Physical": [
             {"name": "Deep Breathing", "description": "Regulate breathing to manage stress and anxiety."},
             {"name": "Take a Nap", "description": "A short rest to rejuvenate energy and mood."},
@@ -82,26 +86,32 @@ categories = {
     }
 }
 
-
-
 if __name__ == '__main__':
     with app.app_context():
         print("Starting seed...")
 
         # Seeding categories and associated activities
-        for category_name, activities in categories.items():
+        for category_name, subcategories in categories.items():
             category = Category.query.filter_by(name=category_name).first()
-            if not category:  # If category doesn't already exist
+            if not category:  
                 category = Category(name=category_name)
                 db.session.add(category)
-                db.session.flush()  # Flush to get the category id
 
-            for activity_data in activities:
-                activity = Activity.query.filter_by(name=activity_data["name"]).first()
-                if not activity:  # If activity doesn't already exist
-                    activity = Activity(name=activity_data["name"], description=activity_data["description"], category_id=category.id)
-                    db.session.add(activity)
+            for subcategory_name, activity_list in subcategories.items():
+                subcategory = Category.query.filter_by(name=subcategory_name).first()
+                if not subcategory:  
+                    subcategory = Category(name=subcategory_name, parent_id=category.id)
+                    db.session.add(subcategory)
 
-        db.session.commit()
+                for activity_data in activity_list:
+                    activity = Activity.query.filter_by(name=activity_data["name"]).first()
+                    if not activity:  
+                        activity = Activity(name=activity_data["name"], description=activity_data["description"], category_id=subcategory.id)
+                        db.session.add(activity)
+
+            db.session.commit()
         print("Seeding complete!")
+
+
+
 

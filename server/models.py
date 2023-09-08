@@ -57,8 +57,8 @@ class Category(db.Model, SerializerMixin):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "subcategories": [subcategory.to_dict() for subcategory in self.subcategories],
             "activities": [activity.to_dict() for activity in self.activities]
         }
@@ -85,10 +85,9 @@ class Activity(db.Model, SerializerMixin):
             "name": self.name,
             "description": self.description,
             "multimedia_url": self.multimedia_url,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }
-
 
 # Session Table
 class Session(db.Model, SerializerMixin):

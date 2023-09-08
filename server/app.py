@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask_restful import Resource
 from models import User, Category, Activity, Session, Reminder, Feedback, Progress
 from config import app, db, api
@@ -8,6 +8,14 @@ from config import app, db, api
 def home():
     return "SMART App Home"
 
+@app.errorhandler(404)
+def not_found_error(error):
+    return jsonify({'error': 'Not found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return jsonify({'error': 'Internal server error'}), 500
 
 # -------------------------------------------------- #
 #                     API Routes                     #
@@ -17,7 +25,7 @@ class CategoryResource(Resource):
     def get(self, id=None):
         if id:
             category = Category.query.get_or_404(id)
-            return category.serialize(), 200
+            return category.to_dict(), 200
         else:
             categories = Category.query.all()
         return [category.to_dict() for category in categories], 200
@@ -53,10 +61,11 @@ class ActivityResource(Resource):
     def get(self, id=None):
         if id:
             activity = Activity.query.get_or_404(id)
-            return activity.serialize(), 200
+            return activity.to_dict(), 200  # Use the to_dict method to get a serializable dictionary
         else:
             activities = Activity.query.all()
-            return [activity.serialize() for activity in activities], 200
+        return [activity.to_dict() for activity in activities], 200  # Return a list of dictionaries
+
 
     def post(self):
         data = request.get_json()

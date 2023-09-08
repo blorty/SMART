@@ -1,15 +1,9 @@
-from flask import Flask
 from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, TIMESTAMP
-from sqlalchemy.orm import validates
-from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import validates, backref
 from sqlalchemy import MetaData
-from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 import flask_bcrypt as bcrypt
-from flask_bcrypt import generate_password_hash, check_password_hash
-from datetime import datetime 
-from sqlalchemy import UniqueConstraint
-
 from config import db
 
 convention = {
@@ -22,6 +16,7 @@ convention = {
 
 metadata = MetaData(naming_convention=convention)
 
+
 # User Table
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -33,27 +28,66 @@ class User(db.Model, SerializerMixin):
 
     @validates('password')
     def convert_password(self, key, password):
-        return generate_password_hash(password)
+        return bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-        return check_password_hash(self.password, password)
+        return bcrypt.check_password_hash(self.password, password)
+    
 
 # Category Table
 class Category(db.Model, SerializerMixin):
     __tablename__ = 'categories'
-
+    
     id = Column(Integer, primary_key=True)
     name = Column(String(120), unique=True, nullable=False)
-    activities = db.relationship('Activity', backref='category', lazy=True)
+    description = Column(String(500), nullable=True)
+    parent_id = Column(Integer, ForeignKey('categories.id'), nullable=True)  # New field for parent category ID
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+
+    # Relationship fields
+    activities = db.relationship('Activity', back_populates='category', lazy=True, cascade="all, delete-orphan")
+    subcategories = db.relationship('Category', backref=backref('parent', remote_side=[id]), lazy=True)  # New relationship for subcategories
+
+    # Serialization rules
+    serialize_rules = ('-activities', '-parent', '-subcategories')
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "subcategories": [subcategory.to_dict() for subcategory in self.subcategories],
+            "activities": [activity.to_dict() for activity in self.activities]
+        }
 
 # Activity Table
 class Activity(db.Model, SerializerMixin):
     __tablename__ = 'activities'
-
+    
     id = Column(Integer, primary_key=True)
-    name = Column(String(120), nullable=False)
+    name = Column(String(120), nullable=False, index=True)
     description = Column(String(500), nullable=True)
-    category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
+    multimedia_url = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+    category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)  # Reference to subcategory ID
+
+    category = db.relationship('Category', back_populates='activities')
+
+    serialize_rules = ('-category',) 
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "multimedia_url": self.multimedia_url,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }
 
 # Session Table
 class Session(db.Model, SerializerMixin):
@@ -64,6 +98,7 @@ class Session(db.Model, SerializerMixin):
     activity_id = Column(Integer, ForeignKey('activities.id'))
     timestamp = Column(DateTime, default=datetime.utcnow)
 
+
 # Reminder Table
 class Reminder(db.Model, SerializerMixin):
     __tablename__ = 'reminders'
@@ -72,6 +107,7 @@ class Reminder(db.Model, SerializerMixin):
     user_id = Column(Integer, ForeignKey('users.id'))
     session_id = Column(Integer, ForeignKey('sessions.id'))
     reminder_time = Column(DateTime, nullable=False)
+
 
 # Feedback Table
 class Feedback(db.Model, SerializerMixin):
@@ -82,6 +118,7 @@ class Feedback(db.Model, SerializerMixin):
     session_id = Column(Integer, ForeignKey('sessions.id'))
     feedback_text = Column(String(500), nullable=False)
     rating = Column(Integer, nullable=False)
+
 
 # Progress Table
 class Progress(db.Model, SerializerMixin):

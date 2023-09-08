@@ -1,22 +1,27 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import Home from './components/Home/Home';
-import AboutUs from './components/AboutUs/AboutUs';
-import Goals from './components/Goals/Goals';
-import StressManagementActivities from './components/StressManagementActivities/StressManagementActivities';
-import RelaxationTechniques from './components/RelaxationTechniques/RelaxationTechniques';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Home from './components/Home';
+import AboutUs from './components/AboutUs';
+import Goals from './components/Goals';
+import StressManagementActivities from './components/StressManagementActivities';
+import RelaxationTechniques from './components/RelaxationTechniques';
+
+import { Navbar } from './components/Navbar';
+
 import './App.css';
+import './index.css'
 
 function App() {
   return (
     <Router>
-      <Switch>
-        <Route path="/" exact component={Home} />
-        <Route path="/about-us" component={AboutUs} />
-        <Route path="/goals" component={Goals} />
-        <Route path="/stress-management-activities" component={StressManagementActivities} />
-        <Route path="/relaxation-techniques" component={RelaxationTechniques} />
-      </Switch>
+      <Navbar onSectionChange={() => {}} NavbarBtnOpened={false} setNavbarBtnOpened={() => {}} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/goals" element={<Goals />} />
+        <Route path="/stressmanagementactivities" element={<StressManagementActivities />} />
+        <Route path="/relaxationtechniques" element={<RelaxationTechniques />} />
+      </Routes>
     </Router>
   );
 }

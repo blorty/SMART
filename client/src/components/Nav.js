@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import Account from './Account';
 
@@ -19,34 +20,86 @@ const Navbar = () => {
 
   return (
     <nav>
+      {/* Banner space with animation */}
+      <motion.div
+        className="banner-space"
+        initial={{ opacity: 0, x: '100%' }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: '100%' }}
+        transition={{ duration: 3, repeat: Infinity, repeatType: 'loop' }}
+        style={{
+          whiteSpace: 'nowrap', // Prevent text from wrapping
+          overflow: 'hidden', // Hide overflowing content
+        }}
+      >
+        {/* Add your banner content here */}
+        <h1>We are here to help...</h1>
+      </motion.div>
+
       <div className="nav-container">
         <ul className="left-links">
-          <li>
+          {/* Navigation links with animation */}
+          <motion.li
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+          >
             <Link to="/">Home</Link>
-          </li>
-          <li>
+          </motion.li>
+          <motion.li
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+          >
             <Link to="/about">About</Link>
-          </li>
+          </motion.li>
+          <motion.li
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+          >
+            <Link to="/goals">Goals</Link>
+          </motion.li>
         </ul>
         <button className="sidebar-toggle" onClick={toggleSidebar}>
           <span>&#9776;</span> Menu
         </button>
       </div>
 
-      {isSidebarOpen && (
-        <div className="sidebar" ref={sidebarRef} onMouseLeave={closeSidebarOnMouseLeave}>
-        <h1><Account /></h1>
-          <ul>
-            <li>
-              <Link to="/register">Register</Link>
-            </li>
-            <li>
-              <Link to="/login">Login</Link>
-            </li>
-            {/* Add more sidebar links as needed */}
-          </ul>
-        </div>
-      )}
+      {/* Sidebar with animation */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            className="sidebar"
+            ref={sidebarRef}
+            onMouseLeave={closeSidebarOnMouseLeave}
+            initial={{ opacity: 0, x: 250 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 250 }}
+          >
+            <h1>
+              <Account />
+            </h1>
+            <ul>
+              <motion.li
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+              >
+                <Link to="/register">Register</Link>
+              </motion.li>
+              <motion.li
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+              >
+                <Link to="/login">Login</Link>
+              </motion.li>
+              {/* Add more sidebar links as needed */}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };

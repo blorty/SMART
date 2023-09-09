@@ -9,6 +9,7 @@ import Account from './components/Account';
 import Nav from './components/Nav';
 import Login from './authentication/Login';
 import Register from './authentication/Register';
+import Goals from './components/Goals'
 
 //context imports
 import { useContext } from 'react';
@@ -32,6 +33,7 @@ function UnauthorizedRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/account" element={<Account />} />
+      <Route path="/goals" element={<Goals />} /> 
     </Routes>
   );
 }

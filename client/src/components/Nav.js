@@ -60,6 +60,13 @@ const Navbar = () => {
           >
             <Link to="/goals">Goals</Link>
           </motion.li>
+          <motion.li
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+          >
+            <Link to="/chat">Chat</Link>
+          </motion.li>
         </ul>
         <button className="sidebar-toggle" onClick={toggleSidebar}>
           <span>&#9776;</span> Menu
@@ -70,16 +77,19 @@ const Navbar = () => {
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
-            className="sidebar"
-            ref={sidebarRef}
-            onMouseLeave={closeSidebarOnMouseLeave}
-            initial={{ opacity: 0, x: 250 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 250 }}
-          >
-            <h1>
+          className="sidebar"
+          ref={sidebarRef}
+          onMouseLeave={closeSidebarOnMouseLeave}
+          initial={{ opacity: 0, x: 250 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 250 }}
+        >
+          <section>
+            <h1 style={{ border: "2px solid black" }}>
               <Account />
             </h1>
+          </section>
+          <section>
             <ul>
               <motion.li
                 initial={{ opacity: 0, x: -50 }}
@@ -95,9 +105,18 @@ const Navbar = () => {
               >
                 <Link to="/login">Login</Link>
               </motion.li>
+              <motion.li
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+              >
+                <Link to="/donate">Donate</Link>
+              </motion.li>
               {/* Add more sidebar links as needed */}
             </ul>
-          </motion.div>
+          </section>
+        </motion.div>
+        
         )}
       </AnimatePresence>
     </nav>

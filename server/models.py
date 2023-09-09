@@ -5,12 +5,13 @@ from sqlalchemy.orm import validates
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
-import flask_bcrypt as bcrypt
+
 from flask_bcrypt import generate_password_hash, check_password_hash
 from datetime import datetime 
 from sqlalchemy import UniqueConstraint
 
 from config import db
+from flask_bcrypt import Bcrypt 
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -22,72 +23,43 @@ convention = {
 
 metadata = MetaData(naming_convention=convention)
 
-# User Table
+bcrypt = Bcrypt()
+
+
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String(120), unique=True, nullable=False)
-    email = Column(String(120), unique=True, nullable=False)
-    password = Column(String(128), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, nullable=False, unique=True)
+    email = db.Column(db.String, nullable=False, unique=True)
+    _password_hash = db.Column(db.String, nullable=False)
 
-    @validates('password')
-    def convert_password(self, key, password):
-        return generate_password_hash(password)
+    serialize_only = ('username', 'email')
+    
+    @property
+    def password_hash(self):
+        return self._password_hash
 
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
+    @password_hash.setter
+    def password_hash(self, password):
+        if password is not None:
+            password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+            self._password_hash = password_hash.decode('utf-8')
+        else:
+            self._password_hash = None
 
-# Category Table
-class Category(db.Model, SerializerMixin):
-    __tablename__ = 'categories'
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self.password_hash, password)
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(120), unique=True, nullable=False)
-    activities = db.relationship('Activity', backref='category', lazy=True)
 
-# Activity Table
-class Activity(db.Model, SerializerMixin):
-    __tablename__ = 'activities'
+    def __repr__(self):
+        return f"<User {self.username}>"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(120), nullable=False)
-    description = Column(String(500), nullable=True)
-    category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
+class Message(db.Model, SerializerMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(10), nullable=False)  # 'user' or 'bot'
 
-# Session Table
-class Session(db.Model, SerializerMixin):
-    __tablename__ = 'sessions'
+    def __repr__(self):
+        return f"<Message {self.id}>"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    activity_id = Column(Integer, ForeignKey('activities.id'))
-    timestamp = Column(DateTime, default=datetime.utcnow)
-
-# Reminder Table
-class Reminder(db.Model, SerializerMixin):
-    __tablename__ = 'reminders'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    session_id = Column(Integer, ForeignKey('sessions.id'))
-    reminder_time = Column(DateTime, nullable=False)
-
-# Feedback Table
-class Feedback(db.Model, SerializerMixin):
-    __tablename__ = 'feedbacks'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    session_id = Column(Integer, ForeignKey('sessions.id'))
-    feedback_text = Column(String(500), nullable=False)
-    rating = Column(Integer, nullable=False)
-
-# Progress Table
-class Progress(db.Model, SerializerMixin):
-    __tablename__ = 'progresses'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    progress_description = Column(String(500), nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)

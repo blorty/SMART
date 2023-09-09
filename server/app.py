@@ -1,23 +1,30 @@
-#!/usr/bin/env python3
+from config import app, db, openai
+from flask import jsonify, request
+from models import Message
 
-# Standard library imports
-
-# Remote library imports
-from flask import request
-from flask_restful import Resource
-
-# Local imports
-from config import app, db, api
-# Add your model imports
-
-
-# Views go here!
-
+# Define route handlers
 @app.route('/')
 def index():
-    return '<h1>Phase 4 Project Server</h1>'
+    return "Hello World!"
 
+@app.route("/chat", methods=["POST"])
+def chatbot():
+    try:
+        user_input = request.json.get("input")
+        
+        # Call the OpenAI API to get a response
+        response = openai.Completion.create(
+            engine="davinci",  # You can choose another engine if needed
+            prompt=user_input,
+            max_tokens=50,  # Adjust the number of tokens as needed
+        )
+        
+        bot_response = response.choices[0].text
 
-if __name__ == '__main__':
+        return jsonify({"botResponse": bot_response})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == "__main__":
     app.run(port=5555, debug=True)
-

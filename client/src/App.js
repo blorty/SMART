@@ -5,6 +5,7 @@ import AboutUs from './components/AboutUs';
 import Goals from './components/Goals';
 import StressManagementActivities from './components/StressManagementActivities';
 import RelaxationTechniques from './components/RelaxationTechniques';
+// import { ScrollManager } from "./components/ScrollManager";
 
 import { Navbar } from './components/Navbar';
 
@@ -15,6 +16,7 @@ function App() {
   return (
     <Router>
       <Navbar onSectionChange={() => {}} NavbarBtnOpened={false} setNavbarBtnOpened={() => {}} />
+      {/* <ScrollManager pages={4} damping={0.1}> */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/aboutus" element={<AboutUs />} />
@@ -22,6 +24,7 @@ function App() {
         <Route path="/stressmanagementactivities" element={<StressManagementActivities />} />
         <Route path="/relaxationtechniques" element={<RelaxationTechniques />} />
       </Routes>
+      {/* </ScrollManager> */}
     </Router>
   );
 }

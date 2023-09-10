@@ -1,38 +1,34 @@
-.App {
-  text-align: center;
+@font-face {
+  font-family: 'Diary';
+  src: url(/fonts/ClassicalDiary-Regular\ Demo.ttf) format('woff2');
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+@font-face {
+  font-family: 'Native';
+  src: url(/fonts/Native-Stories.ttf) format('woff2');
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+@font-face {
+  font-family: 'Kuano';
+  src: url(/fonts/Kuano.ttf) format('woff2');
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+h1 {
+  font-family: 'Diary';
+  letter-spacing: 3px;
 }
 
-.App-link {
-  color: #61dafb;
+p {
+  font-family: 'Native';
+  letter-spacing: 1px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+#logo {
+  font-family: 'Kuano';
+  font-size: 4rem;
+  letter-spacing: 3px;
+}
+
+::-webkit-scrollbar {
+  display: none;
 }

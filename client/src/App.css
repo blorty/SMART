@@ -28,3 +28,7 @@ p {
   font-size: 4rem;
   letter-spacing: 3px;
 }
+
+::-webkit-scrollbar {
+  display: none;
+}

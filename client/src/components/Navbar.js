@@ -8,7 +8,7 @@ export const Navbar = () => {
         <>
             <button 
             onClick={() => setNavbarBtnOpened(!NavbarBtnOpened)}
-            className="drop-shadow-md fixed top-12 right-12 p-3 text-2xl z-20 w-11 h-11 rounded-md bg-orange">
+            className="drop-shadow-md fixed top-12 right-12 p-3 text-2xl z-20 w-11 h-11 rounded-md bg-darkgreen">
                 <div
                     className={`bg-white h-0.5 rounded-md w-full transition-all ${
                         NavbarBtnOpened ? "rotate-45 translate-y-0.5" : ""
@@ -47,7 +47,7 @@ const NavbarBtn = ({ label, to }) => {
             to={to}
             smooth={true}
             duration={500}
-            className="drop-shadow-md opacity-85 text-orange text-2xl font-bold cursor-pointer hover:text-white transition-colors"
+            className="drop-shadow-md opacity-85 text-mattecoal text-2xl font-bold cursor-pointer hover:text-orange transition-colors"
         >
             {label}
         </ScrollLink>

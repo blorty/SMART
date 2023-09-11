@@ -1,8 +1,23 @@
 from flask import request, jsonify
+from werkzeug.exceptions import HTTPException
 from flask_restful import Resource
-from models import User, Category, Activity, Session, Reminder, Feedback, Progress
+from flask_cors import CORS
+
+from models import Category, Activity
 from config import app, db, api
 
+CORS(app)
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # pass through HTTP errors
+    if isinstance(e, HTTPException):
+        return e
+
+    # now you're handling non-HTTP exceptions only
+    app.logger.error(e)
+
+    return jsonify(error=str(e)), 500
 
 @app.route('/')
 def home():
@@ -98,6 +113,7 @@ class ActivityResource(Resource):
 # Adding resources to the API
 api.add_resource(CategoryResource, '/categories', '/categories/<int:id>')
 api.add_resource(ActivityResource, '/activities', '/activities/<int:id>')
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

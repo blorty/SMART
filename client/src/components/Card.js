@@ -1,23 +1,21 @@
 import React from 'react';
-import { motion } from "framer-motion";
-import { Carousel } from 'react-responsive-carousel';
+import { motion } from 'framer-motion';
 
-const Card = ({ activity = {} }) => {
-    console.log('Activity in Card:', activity); // Add this line
-    const { name = "Default name", description = "Default Description", category_name = "Default Category", sub_category = "Default Sub-Category" } = activity;
-
+const Card = ({ activity, mainCategoryName }) => {
     return (
-        <Carousel>
-            <motion.div
-                className="w-60 h-80 bg-white p-4 rounded-md shadow-md flex flex-col justify-between"
-                whileHover={{ scale: 1.05 }}
-            >
-                <h2 className="text-xl font-bold">{sub_category}</h2>
-                <h1 className="text-lg font-semibold">{name}</h1>
-                <p className="text-l text-gray-700">{description}</p>
-                <p className="text-sm text-gray-500">Category: {category_name}</p>
-            </motion.div>
-        </Carousel>
+        <motion.div 
+            className="bg-black text-white p-4 rounded-lg shadow-lg flex flex-col justify-between w-72 h-96 m-2"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+        >
+            <div>
+                <h2 className="text-xl font-bold mb-2">{activity.name}</h2>
+                <p className="text-sm">{activity.description}</p>
+            </div>
+            <div>
+                <p className="text-xs italic">{mainCategoryName}</p>
+            </div>
+        </motion.div>
     );
 };
 

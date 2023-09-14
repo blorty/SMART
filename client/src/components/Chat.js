@@ -18,7 +18,7 @@ function Chatbot() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message: input }),
+      body: JSON.stringify({ input: input }), // Correct the key to "input"
     })
       .then((response) => response.json())
       .then((data) => {

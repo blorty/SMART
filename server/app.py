@@ -2,6 +2,9 @@ from config import app, db, openai
 from flask import jsonify, request
 from models import Message
 
+# Initialize an empty conversation history
+conversation = []
+
 # Define route handlers
 @app.route('/')
 def index():
@@ -11,15 +14,23 @@ def index():
 def chatbot():
     try:
         user_input = request.json.get("input")
-        
+        print("User Input:", user_input)
+
+        # Add the user's message to the conversation
+        conversation.append({"role": "user", "content": user_input})
+
         # Call the OpenAI API to get a response
-        response = openai.Completion.create(
-            engine="davinci",  # You can choose another engine if needed
-            prompt=user_input,
-            max_tokens=50,  # Adjust the number of tokens as needed
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=conversation,
+            temperature=0.7,  # You can adjust temperature for response randomness
+            max_tokens=150,   # Adjust max_tokens as needed
         )
-        
-        bot_response = response.choices[0].text
+
+        bot_response = response.choices[0].message["content"]
+
+        # Add the bot's response to the conversation
+        conversation.append({"role": "assistant", "content": bot_response})
 
         return jsonify({"botResponse": bot_response})
 

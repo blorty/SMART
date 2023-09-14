@@ -8,6 +8,8 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 import openai
+import os
+
 
 # Local imports
 
@@ -25,11 +27,10 @@ db = SQLAlchemy(metadata=metadata)
 migrate = Migrate(app, db)
 db.init_app(app)
 
-# Set your OpenAI API key
-api_key = "YOUR_OPENAI_API_KEY"
 
 # Initialize the OpenAI client
-openai.api_key = api_key
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 # Instantiate REST API
 api = Api(app)

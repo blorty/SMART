@@ -1,27 +1,34 @@
-// src/components/Chatbot.js
 import React, { useState } from "react";
-import axios from "axios";
 
-const Chatbot = () => {
-  const [input, setInput] = useState("");
+function Chatbot() {
   const [conversation, setConversation] = useState([]);
+  const [input, setInput] = useState("");
 
-  const sendMessage = async () => {
-    if (input.trim() === "") return;
+  const sendMessage = () => {
+    // Add the user's message to the conversation
+    const userMessage = { role: "user", content: input };
+    setConversation([...conversation, userMessage]);
 
-    // Append user message to conversation
-    setConversation([...conversation, { role: "user", content: input }]);
+    // Clear the input field
     setInput("");
 
-    // Make an API call to GPT-3
-    try {
-      const response = await axios.post("/chat", { input });
-      const botResponse = response.data;
-      // Append bot response to conversation
-      setConversation([...conversation, { role: "bot", content: botResponse }]);
-    } catch (error) {
-      console.error("Error fetching response from the API: ", error);
-    }
+    // Send the user's message to the server to get the AI response
+    fetch("/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: input }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Add the AI response to the conversation
+        const aiMessage = { role: "ai", content: data.botResponse };
+        setConversation([...conversation, aiMessage]);
+      })
+      .catch((error) => {
+        console.error("Error sending message to server:", error);
+      });
   };
 
   return (
@@ -46,6 +53,6 @@ const Chatbot = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Chatbot;

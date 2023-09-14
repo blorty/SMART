@@ -2,22 +2,26 @@ import React from 'react';
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
 
+// import Carousel from './Carousel';
+// import 'react-multi-carousel/lib/styles.css'
+
+import CardSection from './CardSection';
+
 
 const Section = (props) => {
     const {children, id} = props;
 
     return (
-    <motion.section 
-        id={id}
-        className="h-screen w-full p-4 md:p-4 sm:p-2 p-1 max-w-screen-2xl mx-auto flex flex-col item-start justify-center bg-mattebrown"
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0, transition: { duration: 0.25, delay: 0.25 } }}
-    >
-        {children}
-    </motion.section>
+        <motion.section 
+            id={id}
+            className="h-screen w-full p-4 md:p-6 lg:p-8 flex flex-col items-start justify-center bg-mattebrown scroll-snap-align start"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0, transition: { duration: 0.25, delay: 0.25 } }}
+        >
+            {children}
+        </motion.section>
     )
 }
-
 
 const AboutUs = () => {
     return (
@@ -66,6 +70,8 @@ const RelaxationTechniques = () => {
             >
                 Your description about "Relaxation Techniques" goes here.
             </motion.p>
+            <CardSection />
+
         </Section>
     )
 }
@@ -88,32 +94,37 @@ const StressManagementActivities = () => {
 }
 
 const Home = () => (
-
-    <motion.div 
-        id='logo' 
-        className="flex flex-col items-center w-screen relative"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.25, delay: 0.2 }}
-    >
-    <Link 
-        to="/" 
-        className="hover:text-lightgreen drop-shadow-lg absolute left-1/2 transform -translate-x-1/2 md:mt-5 sm:mt-2 mt-1 font-bold cursor-pointer z-50"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.2 }}
-    >
-        SMART
-    </Link>
-
-    
-    
-    <AboutUs />
-    <Goals />
-    <RelaxationTechniques />
-    <StressManagementActivities />
-    </motion.div>
+    <div className="flex flex-col items-center w-screen relative">
+        <motion.div 
+            className="absolute top-0 left-1/2 transform -translate-x-1/2 md:mt-5 sm:mt-3 mt-1 z-50 text-lg md:text-xl lg:text-2xl"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.2 }}
+        >
+            <Link 
+                to="/" 
+                className="hover:text-lightgreen drop-shadow-lg font-bold cursor-pointer"
+            >
+                SMART
+            </Link>
+        </motion.div>
+        
+        <motion.div 
+            id='sections-container' 
+            className="flex flex-col items-center w-full h-full overflow-y-scroll scroll-snap-type y mandatory"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25, delay: 0.2 }}
+        >
+            <AboutUs />
+            <Goals />
+            <RelaxationTechniques />
+            <StressManagementActivities />
+        </motion.div>
+    </div>
 );
+
+
 
 export default Home;
 

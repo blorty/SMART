@@ -47,7 +47,7 @@ const NavbarBtn = ({ label, to }) => {
             to={to}
             smooth={true}
             duration={500}
-            className="drop-shadow-md opacity-85 text-mattecoal text-2xl font-bold cursor-pointer hover:text-darkgreen transition-colors"
+            className="drop-shadow-md opacity-85 text-lg md:text-xl lg:text-2xl text-mattecoal font-bold cursor-pointer hover:text-darkgreen transition-colors"
         >
             {label}
         </ScrollLink>

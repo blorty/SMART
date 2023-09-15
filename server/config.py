@@ -31,7 +31,6 @@ db.init_app(app)
 # Initialize the OpenAI client
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-
 # Instantiate REST API
 api = Api(app)
 

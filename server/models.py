@@ -55,11 +55,17 @@ class User(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<User {self.username}>"
 
-class Message(db.Model, SerializerMixin):
+
+class Contact(db.Model, SerializerMixin):
+    __tablename__ = 'contacts'
+
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(10), nullable=False)  # 'user' or 'bot'
+    name = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=True)
+    message = db.Column(db.String(255), nullable=False)
+
+    serialize_only = ('name', 'email', 'message')
 
     def __repr__(self):
-        return f"<Message {self.id}>"
+        return f"<Contact {self.name}>"
 

@@ -1,5 +1,5 @@
 from config import app, db
-from models import User, Message
+from models import User, Contact
 
 if __name__ == '__main__':
     with app.app_context():
@@ -13,18 +13,23 @@ if __name__ == '__main__':
             # Add more users as needed
         ]
 
-        messages = [
-            Message(content="Hello", role="user"),
-            Message(content="Hi there! How can I assist you today?", role="bot"),
-            # Add more messages as needed
+        # Seed the Nutrition class
+        contacts = [
+            {'name': 'testing', 'email': 'testing', 'message': 'testing'},
+            {'name': 'testing', 'email': 'testing', 'message': 'testing'},
+            # Add more contact data as needed
         ]
 
-        for user in users:
-            db.session.add(user)
-
-        for message in messages:
-            db.session.add(message)
+        for data in contacts:
+            contact = Contact(
+                name='',
+                email=data['email'],
+                message=data['message'],
+            )
+            db.session.add(contact)
 
         db.session.commit()
 
+        for user in users:
+            db.session.add(user)
         print('Seeding complete!')

@@ -10,7 +10,7 @@ import Nav from './components/Nav';
 import Login from './authentication/Login';
 import Register from './authentication/Register';
 import Goals from './components/Goals'
-import Donate from './components/Donate';
+import Contact from './components/Contact';
 import Chat from './components/Chat';
 
 //context imports
@@ -36,7 +36,7 @@ function UnauthorizedRoutes() {
       <Route path="/about" element={<About />} />
       <Route path="/account" element={<Account />} />
       <Route path="/goals" element={<Goals />} /> 
-      <Route path="/donate" element={<Donate />} />
+      <Route path="/contact-me" element={<Contact />} />
       <Route path="/chat" element={<Chat />} />
     </Routes>
   );

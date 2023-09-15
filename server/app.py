@@ -1,6 +1,7 @@
 from config import app, db, openai
 from flask import jsonify, request
-from models import Message
+from models import Contact
+
 
 # Initialize an empty conversation history
 conversation = []
@@ -10,6 +11,7 @@ conversation = []
 def index():
     return "Hello World!"
 
+#standard chatbot(potentially prompt engineering)
 @app.route("/chat", methods=["POST"])
 def chatbot():
     try:
@@ -36,6 +38,27 @@ def chatbot():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/contact-me", methods=["POST"])
+def post_contact():
+    contact_data = request.form  # Assuming you are sending form data
+
+    try:
+        contact = Contact(
+            name=contact_data.get('name'),
+            email=contact_data.get('email'),
+            message=contact_data.get('message')
+        )
+
+        db.session.add(contact)
+        db.session.commit()
+
+        return jsonify({"message": "Contact data submitted successfully"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": f"Error updating contact data: {str(e)}"}), 500
+
+
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)

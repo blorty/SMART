@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../AppContext'; // Adjusted the path
-import Card from './Card';
+import Card from './Card';  // Adjusted the path to point to the correct Card.js file
+import { AnimatePresence } from 'framer-motion';  // Removed the unused 'motion' import
 
 const CardSection = () => {
     const { relaxationTechniques } = useContext(AppContext);
@@ -23,9 +24,14 @@ const CardSection = () => {
     };
 
     return (
-        <div className="flex items-center">
+        <div className="flex items-center justify-center margin-auto">
             <button onClick={handlePrev} className="p-4 bg-gray-300 rounded-md">Previous</button>
-            {flattenedRelaxationTechniques.length > 0 && <Card activity={flattenedRelaxationTechniques[currentIndex]} />}
+            <AnimatePresence>
+                {flattenedRelaxationTechniques.length > 0 
+                    && 
+                        <Card key={currentIndex} activity={flattenedRelaxationTechniques[currentIndex]} 
+                        handleNext={handleNext} handlePrev={handlePrev} />}
+            </AnimatePresence>
             <button onClick={handleNext} className="p-4 bg-gray-300 rounded-md">Next</button>
         </div>
     );

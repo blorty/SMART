@@ -1,6 +1,16 @@
 from config import app, db, openai
 from flask import jsonify, request
 from models import Contact
+from twilio.rest import Client
+import os
+
+# Twilio credentials
+account_sid = 'ACfd0c3d1f0745a16d6d3bd438002158c9'
+auth_token = 'd472dcec6fee47db14e604d826b23316'  # Replace with your actual Twilio authentication token
+twilio_phone_number = '+18336191267'  # Replace with your Twilio phone number
+
+# Initialize Twilio client
+client = Client(account_sid, auth_token)
 
 
 # Initialize an empty conversation history
@@ -53,6 +63,15 @@ def post_contact():
         db.session.add(contact)
         db.session.commit()
 
+        # Send an SMS when the contact form is submitted
+        message = client.messages.create(
+            body="New contact form submission: Name - {}, Email - {}, Message - {}".format(
+                contact.name, contact.email, contact.message),
+            from_=twilio_phone_number,
+            to='+15053663543'  # Replace with your desired recipient phone number
+        )
+        print("SMS sent successfully:", message.sid)
+        
         return jsonify({"message": "Contact data submitted successfully"}), 201
     except Exception as e:
         db.session.rollback()

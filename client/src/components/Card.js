@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 
-const Card = ({ activity, mainCategoryName, handleNext, handlePrev }) => {
+const Card = ({ activity, mainCategoryName, handleNext, handlePrev, style }) => {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-150, 0, 150], [-45, 0, 45], { clamp: false });
 
@@ -15,13 +15,12 @@ const Card = ({ activity, mainCategoryName, handleNext, handlePrev }) => {
 
     return (
         <motion.div 
-            className="bg-black text-white p-4 rounded-lg shadow-lg flex flex-col justify-between w-72 h-96 m-2"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
-            style={{ x, rotate }}
+            className="bg-black text-white p-4 rounded-lg shadow-lg flex flex-col justify-between w-72 h-96 m-2 transition-transform ease-in-out duration-100"
+            whileHover={{ scale: 1.05, boxShadow: "0px 0px 8px 1px #ffffff", backgroundColor: "#ffffff", color: "#000000" }}
+            style={{ x, rotate, ...style }}  // Added the ...style to apply the style prop
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
-            onDragEnd={handleDragEnd}  // Added the onDragEnd event handler
+            onDragEnd={handleDragEnd}
         >
             <div>
                 <h2 className="text-xl font-bold mb-2">{activity.name}</h2>
@@ -32,6 +31,8 @@ const Card = ({ activity, mainCategoryName, handleNext, handlePrev }) => {
             </div>
         </motion.div>
     );
-};
+}
 
 export default Card;
+
+

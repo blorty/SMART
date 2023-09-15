@@ -70,11 +70,13 @@ const RelaxationTechniques = () => {
             >
                 Your description about "Relaxation Techniques" goes here.
             </motion.p>
-            <CardSection />
-
+            <div className="flex items-center justify-center">
+                <CardSection />
+            </div>
         </Section>
     )
 }
+
 
 const StressManagementActivities = () => {
     return (

@@ -1,8 +1,10 @@
 from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import validates, backref
 from sqlalchemy import MetaData
 import flask_bcrypt as bcrypt
+from datetime import datetime
+
 from config import db
 
 convention = {
@@ -15,6 +17,49 @@ convention = {
 
 metadata = MetaData(naming_convention=convention)
 
+class User(db.Model, SerializerMixin):
+    __tablename__ = 'users'
+
+    user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, nullable=False, unique=True)
+    email = db.Column(db.String, nullable=False, unique=True)
+    _password_hash = db.Column(db.String, nullable=False)
+    avatar_url = db.Column(db.String(500), nullable=True)
+    
+    happy_notes = db.relationship('HappyNote', backref='user', lazy=True)
+
+    serialize_only = ('username', 'email')
+
+    @property
+    def password_hash(self):
+        return self._password_hash
+
+    @password_hash.setter
+    def password_hash(self, password):
+        if password is not None:
+            password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+            self._password_hash = password_hash.decode('utf-8')
+        else:
+            self._password_hash = None
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self.password_hash, password)
+
+
+    def repr(self):
+        return f"<User {self.username}>"
+
+
+class HappyNote(db.Model, SerializerMixin):
+    __tablename__ = 'happynotes'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    serialize_rules = ('-user',)  # Exclude the user relationship from serialization
+
 
 class MainCategory(db.Model):
     __tablename__ = 'main_categories'
@@ -22,6 +67,7 @@ class MainCategory(db.Model):
     name = db.Column(db.String, unique=True, nullable=False)
     
     subcategories = db.relationship('SubCategory', backref='main_category', lazy=True)
+
 
 class SubCategory(db.Model):
     __tablename__ = 'subcategories'
@@ -31,6 +77,7 @@ class SubCategory(db.Model):
     main_category_id = db.Column(db.Integer, db.ForeignKey('main_categories.id'), nullable=False)
     activities = db.relationship('Activity', backref='subcategory', lazy=True)
 
+
 class Activity(db.Model):
     __tablename__ = 'activities'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -38,6 +85,7 @@ class Activity(db.Model):
     description = db.Column(db.String, nullable=True)
     
     subcategory_id = db.Column(db.Integer, db.ForeignKey('subcategories.id'), nullable=False)
+
 
 def __init__(self, name, description, subcategory_id):
     self.name = name

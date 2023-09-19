@@ -2,7 +2,7 @@ from flask import Flask
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, TIMESTAMP
 from sqlalchemy.orm import validates
-from sqlalchemy.ext.associationproxy import association_proxy
+
 from sqlalchemy import MetaData
 from flask_sqlalchemy import SQLAlchemy
 
@@ -26,6 +26,35 @@ metadata = MetaData(naming_convention=convention)
 bcrypt = Bcrypt()
 
 
+class Session(db.Model, SerializerMixin):
+    __tablename__ = 'session_log'
+
+    session_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    login_time = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+    logout_time = db.Column(db.DateTime)
+    user_data = db.Column(db.JSON)
+
+    user = db.relationship('User', backref=db.backref('session_logs', lazy=True))
+
+    def __init__(self, user_id=None, user_data=None):
+        if user_id:
+            self.user_id = user_id
+        if user_data:
+            self.user_data = user_data
+
+    def __repr__(self):
+        return f"<SessionLog session_id={self.session_id} user_id={self.user_id}>"
+
+    def to_dict(self):
+        return {
+            "session_id": self.session_id,
+            "user_id": self.user_id,
+            "login_time": self.login_time.isoformat() if self.login_time else None,
+            "logout_time": self.logout_time.isoformat() if self.logout_time else None,
+            "user_data": self.user_data
+        }
+
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
@@ -34,7 +63,7 @@ class User(db.Model, SerializerMixin):
     email = db.Column(db.String, nullable=False, unique=True)
     _password_hash = db.Column(db.String, nullable=False)
 
-    serialize_only = ('username', 'email')
+    serialize_only = ('username', 'email', 'first_name', 'last_name')
     
     @property
     def password_hash(self):

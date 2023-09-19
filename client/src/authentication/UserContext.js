@@ -82,26 +82,35 @@ const UserProvider = ({ children }) => {
 
 
   const createUser = (values) => {
-    return fetch('/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(values),
+  return fetch('/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(values),
+  })
+    .then((response) => {
+      if (response.status === 400) {
+        // Check for a specific error message in the response body
+        return response.json().then((data) => {
+          throw new Error(data.message);
+        });
+      } else if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Sign up failed');
+      }
     })
-      .then((response) => {
-        if (response.status === 409) {
-          throw new Error('Email already exists. Please choose a different email.');
-        } else if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error('Sign up failed');
-        }
-      })
-      .then((data) => {
-        setUser(data);
-      })
-  }
+    .then((data) => {
+      // Handle successful user creation
+      setUser(data);
+    })
+    .catch((error) => {
+      // Handle errors, including the specific error message for email conflict
+      console.error(error.message);
+    });
+};
+
 
   return (
     <AuthContext.Provider

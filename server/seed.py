@@ -1,19 +1,27 @@
 from config import app, db
-from models import User, Contact
+from models import User, Session, Contact
 
 if __name__ == '__main__':
     with app.app_context():
         print('Seeding...')
         db.create_all()
 
-        # Sample users and messages data
-        users = [
-            User(username="user1", email="user1@example.com", password_hash="password1"),
-            User(username="user2", email="user2@example.com", password_hash="password2"),
-            # Add more users as needed
-        ]
+         # Clear existing data
+        db.session.query(User).delete()
+        db.session.query(Session).delete()
 
-        # Seed the Nutrition class
+        users = []
+        # Seed users
+        for user_data in users:
+            user = User(**user_data)
+            db.session.add(user)
+
+            session_log = Session(user_id=user.id, user_data=user_data)
+            db.session.add(session_log)
+
+        db.session.commit()
+
+        # Seed the Contact class
         contacts = [
             {'name': 'testing', 'email': 'testing', 'message': 'testing'},
             {'name': 'testing', 'email': 'testing', 'message': 'testing'},

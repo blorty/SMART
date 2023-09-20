@@ -63,7 +63,6 @@ class User(Resource):
             if new_password != confirm_password:
                 return make_response(jsonify(error="New password and confirmation do not match"), 400)
             
-            # You might add more validations here for password complexity
             if len(new_password) < 8:
                 return make_response(jsonify(error="New password must be at least 8 characters long"), 400)
             

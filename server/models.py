@@ -17,7 +17,7 @@ convention = {
 
 metadata = MetaData(naming_convention=convention)
 
-class User(db.Model, SerializerMixin):
+class User(db.Model):
     __tablename__ = 'users'
 
     user_id = db.Column(db.Integer, primary_key=True)
@@ -27,8 +27,6 @@ class User(db.Model, SerializerMixin):
     avatar_url = db.Column(db.String(500), nullable=True)
     
     happy_notes = db.relationship('HappyNote', backref='user', lazy=True)
-
-    serialize_only = ('username', 'email')
 
     @property
     def password_hash(self):
@@ -45,9 +43,13 @@ class User(db.Model, SerializerMixin):
     def authenticate(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 
-
-    def repr(self):
-        return f"<User {self.username}>"
+    def serialize(self):
+        return {
+            'user_id': self.user_id,
+            'username': self.username,
+            'email': self.email,
+            'avatar_url': self.avatar_url
+        }
 
 
 class HappyNote(db.Model, SerializerMixin):

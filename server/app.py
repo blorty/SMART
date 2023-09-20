@@ -3,10 +3,14 @@ from werkzeug.exceptions import HTTPException
 from flask_restful import Resource
 from flask_cors import CORS
 
+from os import environ
+
 from models import MainCategory, SubCategory, Activity, User, HappyNote
 from config import app, db, api
 
 CORS(app)
+
+app.secret_key = environ.get('SECRET_KEY')
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -30,7 +34,7 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 
-class User(Resource):
+class UserResource(Resource):
     def get(self, user_id):
             user = User.query.get(user_id)
             if not user:
@@ -85,27 +89,35 @@ class User(Resource):
 class Register(Resource):
     def post(self):
         try:
+            # Start a nested transaction
+            db.session.begin_nested()
+
             # Get the JSON data from the request
             data = request.get_json()
             
             # Check if a user already exists with the provided username or email
             if User.query.filter_by(username=data['username']).first():
+                db.session.rollback()  # Rollback the transaction
                 return make_response(jsonify(error="Username already exists"), 409)
+            
             if User.query.filter_by(email=data['email']).first():
+                db.session.rollback()  # Rollback the transaction
                 return make_response(jsonify(error="Email already exists"), 409)
             
             # Create a new user with the provided data
-            new_user = User(username=data['username'], email=data['email'], password=data['password'])
+            new_user = User(username=data['username'], email=data['email'])
+            new_user.password_hash = data['password']
+
             db.session.add(new_user)
-            db.session.commit()
+            db.session.commit()  # Commit the transaction
             
             # Return the new user's data
             return make_response(jsonify(new_user.serialize()), 201)
         except KeyError:
-            # If required data is missing in the request, return a 400 error
+            db.session.rollback()  # Rollback the transaction in case of an exception
             return make_response(jsonify(error="Missing username, email, or password"), 400)
         except Exception as e:
-            # If there is any other exception, log the error and return a 500 error
+            db.session.rollback()  # Rollback the transaction in case of an exception
             app.logger.error(e)
             return make_response(jsonify(error="Internal server error"), 500)
 
@@ -246,13 +258,19 @@ class StressManagementActivities(Resource):
         return make_response(jsonify(all_activities), 200)
 
 
-api.add_resource(User, '/user/<int:user_id>')
+api.add_resource(UserResource, '/user/<int:user_id>')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(Register, '/register')
 api.add_resource(RelaxationTechniques, '/relaxation_techniques')
 api.add_resource(StressManagementActivities, '/stress_management_activities')
 api.add_resource(HappyNotes, '/happynotes', '/happynotes/<int:user_id>')
+
+
+@app.route('/test', methods=['POST'])
+def test():
+    return jsonify(message="POST request successful"), 200
+
 
 
 if __name__ == '__main__':

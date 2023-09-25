@@ -2,14 +2,21 @@ from flask import jsonify, make_response, request, session
 from werkzeug.exceptions import HTTPException
 from flask_restful import Resource
 from flask_cors import CORS
+from dotenv import load_dotenv
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 from os import environ
 
 from models import MainCategory, SubCategory, Activity, User, HappyNote
 from config import app, db, api
 
-CORS(app)
+load_dotenv()
 
+jwt = JWTManager(app)
+
+CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
+
+app.config['JWT_SECRET_KEY'] = environ.get('JWT_SECRET_KEY')
 app.secret_key = environ.get('SECRET_KEY')
 
 @app.errorhandler(Exception)
@@ -110,6 +117,9 @@ class Register(Resource):
 
             db.session.add(new_user)
             db.session.commit()  # Commit the transaction
+
+            # Log the user in automatically
+            session['user_id'] = new_user.user_id
             
             # Return the new user's data
             return make_response(jsonify(new_user.serialize()), 201)
@@ -127,23 +137,36 @@ class Login(Resource):
         try:
             # Get the JSON data from the request
             data = request.get_json()
+            print(jsonify(data))
+
+            # Check if username and password keys are present in the request data
+            if 'username' not in data:
+                return make_response(jsonify(error="Username is required"), 400)
+            if 'password' not in data:
+                return make_response(jsonify(error="Password is required"), 400)
+
             user = User.query.filter_by(username=data['username']).first()
-            
-            # Check if the user exists and if the password is correct
+
+            # Check if the user exists
             if not user:
-                return make_response(jsonify(error="User not found"), 404)
+                return make_response(jsonify(error="Username not found"), 404)
+
+            # Check if the password is correct
             if not user.authenticate(data['password']):
                 return make_response(jsonify(error="Incorrect password"), 401)
-            
-            # Store user_id in session
-            session['user_id'] = user.user_id
-            
-            return make_response(jsonify(user.serialize()), 200)
+
+            # JWT Token Logic
+            print("JWT Secret Key during token creation:", app.config['JWT_SECRET_KEY'])
+            access_token = create_access_token(identity=user.user_id)
+            print("Generated Token:", access_token)
+            return make_response(jsonify(token=access_token, user=user.serialize()), 200)
+
         except KeyError:
             return make_response(jsonify(error="Missing username or password"), 400)
         except Exception as e:
             app.logger.error(e)
             return make_response(jsonify(error="Internal server error"), 500)
+
 
 class Logout(Resource):
     def post(self):
@@ -266,12 +289,21 @@ api.add_resource(RelaxationTechniques, '/relaxation_techniques')
 api.add_resource(StressManagementActivities, '/stress_management_activities')
 api.add_resource(HappyNotes, '/happynotes', '/happynotes/<int:user_id>')
 
+@app.route('/protected_endpoint', methods=['GET'])
+@jwt_required()
+def protected_function():
+    return jsonify(message="You've accessed a protected endpoint!")
 
-@app.route('/test', methods=['POST'])
-def test():
-    return jsonify(message="POST request successful"), 200
-
-
+@app.route('/verify_token', methods=['POST'])
+@jwt_required()
+def verify_token():
+    print("JWT Secret Key during token verification:", app.config['JWT_SECRET_KEY'])
+    # If we reach this point, the token is valid.
+    current_user = get_jwt_identity()  # This fetches the identity (usually user_id) from the token
+    user_data = User.query.get(current_user)
+    if not user_data:
+        return jsonify(error="User not found"), 404
+    return jsonify(valid=True, user=user_data.serialize()), 200
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

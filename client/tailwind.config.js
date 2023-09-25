@@ -7,6 +7,7 @@ module.exports = {
       'darkgreen': '#263A29',
       'lightgreen': '#41644A',
       'lightsalmon': '#F2E3DB',
+      'brightred': '#C63D2F',
 
       'white': '#EFEFEF',
       'black': '#000000',

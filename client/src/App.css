@@ -32,3 +32,10 @@ p {
 ::-webkit-scrollbar {
   display: none;
 }
+
+.error-message {
+  color: #C63D2F;
+  font-size: 12px;
+  margin-top: 3px;
+  text-shadow: black 50% 50% 1px;
+}

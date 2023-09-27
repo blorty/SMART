@@ -4,6 +4,7 @@ from sqlalchemy.orm import validates, backref
 from sqlalchemy import MetaData
 import flask_bcrypt as bcrypt
 from datetime import datetime
+import base64
 
 from config import db
 
@@ -24,7 +25,7 @@ class User(db.Model):
     username = db.Column(db.String, nullable=False, unique=True)
     email = db.Column(db.String, nullable=False, unique=True)
     _password_hash = db.Column(db.String, nullable=False)
-    avatar_url = db.Column(db.String(500), nullable=True)
+    avatar_data = db.Column(db.LargeBinary, nullable=True)
     
     happy_notes = db.relationship('HappyNote', backref='user', lazy=True)
 
@@ -41,14 +42,19 @@ class User(db.Model):
             self._password_hash = None
 
     def authenticate(self, password):
+        hashed_input_password = bcrypt.generate_password_hash(password.encode('utf-8')).decode('utf-8')
+        print("Stored Hash:", self.password_hash)
+        print("Input Password Hash:", hashed_input_password)
         return bcrypt.check_password_hash(self.password_hash, password)
 
+
     def serialize(self):
+        avatar_data_encoded = base64.b64encode(self.avatar_data).decode('utf-8') if self.avatar_data else None
         return {
             'user_id': self.user_id,
             'username': self.username,
             'email': self.email,
-            'avatar_url': self.avatar_url
+            'avatar_data': avatar_data_encoded  # This will now be a base64 encoded string
         }
 
 

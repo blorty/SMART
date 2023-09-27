@@ -5,12 +5,13 @@ import Login from './Login';
 import { AppContext } from '../AppContext';
 import { Link as ScrollLink } from 'react-scroll';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 export const Navbar = () => {
     const [NavbarBtnOpened, setNavbarBtnOpened] = useState(false);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-    const { isLoggedIn, logout } = useContext(AppContext);
+    const { isLoggedIn, user, logout } = useContext(AppContext);
 
     useEffect(() => {
         if (isLoggedIn) {
@@ -33,33 +34,44 @@ export const Navbar = () => {
         setIsLoginModalOpen(!isLoginModalOpen);
     };
 
-    
-
     return (
         <>
             <button 
                 onClick={() => setNavbarBtnOpened(!NavbarBtnOpened)}
                 className="drop-shadow-md fixed top-12 right-12 p-3 text-2xl z-20 w-11 h-11 rounded-md bg-darkgreen">
                 <div
-                    className={`bg-white h-0.5 rounded-md w-full transition-all ${
-                        NavbarBtnOpened ? "rotate-45 translate-y-0.5" : ""
-                    }`}
+                    className={`bg-white h-0.5 rounded-md w-full transition-all ${NavbarBtnOpened ? "rotate-45 translate-y-0.5" : ""}`}
                 />
                 <div
-                    className={`bg-white h-0.5 rounded-md w-full my-1 ${
-                        NavbarBtnOpened ? "hidden" : ""
-                    }`}
+                    className={`bg-white h-0.5 rounded-md w-full my-1 ${NavbarBtnOpened ? "hidden" : ""}`}
                 />
                 <div
-                    className={`bg-white h-0.5 rounded-md w-full transition-all ${
-                        NavbarBtnOpened ? "-rotate-45" : ""
-                    }`}
+                    className={`bg-white h-0.5 rounded-md w-full transition-all ${NavbarBtnOpened ? "-rotate-45" : ""}`}
                 />
             </button>
+
 
             <div
                 className={`z-10 fixed top-0 right-0 bottom-0 bg-lightgreen overflow-hidden transition-all flex flex-col ${NavbarBtnOpened ? "w-80" : "w-0"}`}
             >
+                {isLoggedIn && (
+                    <motion.div
+                        className="flex flex-col items-center justify-center gap-1 p-4 mt-4"
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={{
+                            hidden: { opacity: 0, y: "-100vh" },
+                            visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeInOut" } },
+                            exit: { opacity: 0, y: "100vh", transition: { duration: 0.3, ease: "easeInOut" } },
+                        }}
+                    >
+                        <svg className="svg-icon" viewBox="0 0 20 20">
+                        <path d="M12.075,10.812c1.358-0.853,2.242-2.507,2.242-4.037c0-2.181-1.795-4.618-4.198-4.618S5.921,4.594,5.921,6.775c0,1.53,0.884,3.185,2.242,4.037c-3.222,0.865-5.6,3.807-5.6,7.298c0,0.23,0.189,0.42,0.42,0.42h14.273c0.23,0,0.42-0.189,0.42-0.42C17.676,14.619,15.297,11.677,12.075,10.812 M6.761,6.775c0-2.162,1.773-3.778,3.358-3.778s3.359,1.616,3.359,3.778c0,2.162-1.774,3.778-3.359,3.778S6.761,8.937,6.761,6.775 M3.415,17.69c0.218-3.51,3.142-6.297,6.704-6.297c3.562,0,6.486,2.787,6.705,6.297H3.415z"></path>
+                        </svg>
+                        <span className="font-medium text-center w-full">{user.username}</span>
+                    </motion.div>
+                )}
                 <div className="flex-1 flex items-start justify-center flex-col gap-6 p-8">
                     {!isLoggedIn ? (
                         <>

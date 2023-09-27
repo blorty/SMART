@@ -48,7 +48,7 @@ const CardSection = () => {
     const cardIndices = getCardIndices(currentIndex);
 
     return (
-        <div className="relative w-full flex justify-center items-center h-full mt-20">
+        <div className="relative w-full flex justify-center items-center h-screen mt-20">
             <div className="flex justify-center">
                 <AnimatePresence>
                     {shuffledTechniques.length > 0 && cardIndices.map((index, i) => (

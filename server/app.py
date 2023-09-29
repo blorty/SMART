@@ -42,49 +42,33 @@ def internal_error(error):
 
 
 class UserResource(Resource):
-    def put(self, user_id):
-        print("Data received:", request.get_json())
+    def get(self, user_id):
         user = User.query.get(user_id)
         if not user:
             return make_response(jsonify(error="User not found"), 404)
+        return make_response(jsonify(user.serialize()), 200)
 
-        # Check if there's an uploaded file
-        uploaded_file = request.files.get('avatar')
+
+class UserPasswordResource(Resource):
+    def put(self, username):
+        print("Received request to reset password for username:", username)
+
+        user = User.query.filter_by(username=username).first()
+
+        if not user:
+            return make_response(jsonify(error="User not found"), 404)
         
-        if uploaded_file:
-            # It's a form-data request
-            username = request.form.get('username')
-            current_password = request.form.get('current_password')
-            new_password = request.form.get('new_password')
-            confirm_password = request.form.get('confirm_password')
+        data = request.get_json()
+        print("Received data:", data)
 
-
-            # Handle image upload
-            if not uploaded_file.filename.endswith(('.png', '.jpg', '.jpeg')):
-                return make_response(jsonify(error="Invalid image format"), 400)
-            image_data = uploaded_file.read()
-            user.avatar_data = image_data
-        else:
-    # It's a JSON request
-            data = request.get_json()
-            print("JSON Data:", data)  # This will print the entire JSON payload
-            username = data.get('username')
-            current_password = data.get('password')
-            new_password = data.get('new_password')
-            confirm_password = data.get('confirm_password')
-        
-        # Update username if provided and not already taken
-        if username:
-            existing_user = User.query.filter_by(username=username).first()
-            if existing_user and existing_user.user_id != user_id:
-                return make_response(jsonify(error="Username is already in use"), 400)
-            user.username = username
+        current_password = data.get('password')
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
         
         print("Current Password:", current_password)
         print("New Password:", new_password)
         print("Confirm Password:", confirm_password)
 
-        # Update password if all necessary fields are provided
         if current_password and new_password and confirm_password:
             if not user.authenticate(current_password):
                 return make_response(jsonify(error="Current password is incorrect"), 400)
@@ -100,14 +84,41 @@ class UserResource(Resource):
             return make_response(jsonify(message="Password updated successfully"), 200)
 
 
-    def delete(self, user_id):
+class UserUsernameResource(Resource):
+    def put(self, user_id):
+        print("Data received:", request.get_json())
         user = User.query.get(user_id)
         if not user:
             return make_response(jsonify(error="User not found"), 404)
             
-        db.session.delete(user)
-        db.session.commit()
-        return make_response(jsonify(message="User deleted successfully"), 200)
+        data = request.get_json()
+        username = data.get('username')
+
+        if username:
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user and existing_user.user_id != user_id:
+                return make_response(jsonify(error="Username is already in use"), 400)
+            user.username = username
+            db.session.commit()
+            return make_response(jsonify(message="Username updated successfully"), 200)
+
+class UserAvatarResource(Resource):
+    def put(self, user_id):
+        user = User.query.get(user_id)
+        if not user:
+            return make_response(jsonify(error="User not found"), 404)
+            
+        uploaded_file = request.files.get('avatar')
+        if uploaded_file:
+            # Handle image upload
+            if not uploaded_file.filename.endswith(('.png', '.jpg', '.jpeg')):
+                return make_response(jsonify(error="Invalid image format"), 400)
+            image_data = uploaded_file.read()
+            user.avatar_data = image_data
+            db.session.commit()
+            return make_response(jsonify(message="Avatar updated successfully"), 200)
+        else:
+            return make_response(jsonify(error="No avatar provided"), 400)
 
 
 class Register(Resource):
@@ -299,6 +310,9 @@ class StressManagementActivities(Resource):
 
 
 api.add_resource(UserResource, '/user/<int:user_id>')
+api.add_resource(UserPasswordResource, '/user/<string:username>/password')
+api.add_resource(UserUsernameResource, '/user/<int:user_id>/username')
+api.add_resource(UserAvatarResource, '/user/<int:user_id>/avatar')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(Register, '/register')

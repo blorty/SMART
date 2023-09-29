@@ -164,11 +164,78 @@ const AppContextProvider = ({ children }) => {
     };
     
 
+    const resetPassword = (values) => {
+        console.log("Attempting to reset password with values:", values);
+        return fetch(`http://localhost:5555/user/${values.username}/password`, {  // Use username in the URL
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(values),
+            credentials: 'include',
+        })
+        .then(response => {
+            console.log("Received response from server:", response);
+    
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message || 'Failed to reset password.'));
+            }
+            return response.json();
+        })
+        .catch(error => {
+            console.error('Reset Password Error:', error);
+            throw new Error(error);
+        });
+    };    
+    
+    
+    const forgotUsername = (email) => {
+        return fetch('http://localhost:5555/user/forgot-username', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email }),
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message || 'Failed to retrieve username.'));
+            }
+            return response.json();
+        })
+        .catch(error => {
+            console.error('Forgot Username Error:', error);
+            throw new Error(error);
+        });
+    };
+    
+    const updateAvatar = (userId, avatarFile) => {
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+    
+        return fetch(`http://localhost:5555/user/avatar/${userId}`, {
+            method: 'PUT',
+            body: formData,
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message || 'Failed to update avatar.'));
+            }
+            return response.json();
+        })
+        .catch(error => {
+            console.error('Update Avatar Error:', error);
+            throw new Error(error);
+        });
+    };
 
     return (
         <AppContext.Provider value={{ 
             relaxationTechniques, stressManagementActivities, user, setIsLoggedIn, 
             isLoggedIn, login, register, logout, authError, setAuthError, 
+            resetPassword, forgotUsername, updateAvatar
         }}>
             {children}
         </AppContext.Provider>

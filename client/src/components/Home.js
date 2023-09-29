@@ -1,6 +1,10 @@
 import React from 'react';
+import { useContext } from 'react';
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom';
+import { AppContext } from '../AppContext';
+import Login from './Login';
+import ForgotPassword from './ForgotPassword';
 
 // import Carousel from './Carousel';
 // import 'react-multi-carousel/lib/styles.css'
@@ -95,39 +99,47 @@ const StressManagementActivities = () => {
     )
 }
 
-const Home = () => (
-    <div className="flex flex-col items-center w-screen relative">
-        <motion.div 
-            className="absolute top-0 left-1/2 transform -translate-x-1/2 md:mt-5 sm:mt-3 mt-1 z-50 text-lg md:text-xl lg:text-2xl"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: 0.2 }}
-        >
-            <Link 
-                to="/" 
-                className="hover:text-lightgreen drop-shadow-lg font-bold cursor-pointer"
+const Home = () => {
+    const { 
+        isLoginModalOpen, 
+        isForgotPasswordModalOpen 
+    } = useContext(AppContext);
+
+    return (
+        <div className="flex flex-col items-center w-screen relative">
+            <motion.div 
+                className="absolute top-0 left-1/2 transform -translate-x-1/2 md:mt-5 sm:mt-3 mt-1 z-50 text-lg md:text-xl lg:text-2xl"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.2 }}
             >
-                SMART
-            </Link>
-        </motion.div>
-        
-        <motion.div 
-            id='sections-container' 
-            className="flex flex-col items-center w-full h-full overflow-y-scroll scroll-snap-type y mandatory"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.25, delay: 0.2 }}
-        >
-            <AboutUs />
-            <Goals />
-            <RelaxationTechniques />
-            <StressManagementActivities />
-        </motion.div>
-    </div>
-);
+                <Link 
+                    to="/" 
+                    className="hover:text-lightgreen drop-shadow-lg font-bold cursor-pointer"
+                >
+                    SMART
+                </Link>
+            </motion.div>
+            
+            <motion.div 
+                id='sections-container' 
+                className="flex flex-col items-center w-full h-full overflow-y-scroll scroll-snap-type y mandatory"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.25, delay: 0.2 }}
+            >
+                <AboutUs />
+                <Goals />
+                <RelaxationTechniques />
+                <StressManagementActivities />
+            </motion.div>
 
-
+            {/* Modals */}
+            {isLoginModalOpen && <Login />}
+            {isForgotPasswordModalOpen && <ForgotPassword />}
+        </div>
+    );
+};
 
 export default Home;
-
 

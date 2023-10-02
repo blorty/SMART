@@ -31,7 +31,7 @@ const Modal = ({ isOpen, close, children }) => {
 
             {/* Modal Box */}
             <motion.div
-                className="bg-lightsalmon p-8 rounded-lg shadow-2xl z-10 w-4/5 md:w-1/2"
+                className="bg-lightsalmon p-8 rounded-lg shadow-2xl z-10 w-4/5 lg:w-1/3  md:w-1/2"
                 initial="hidden"
                 animate="visible"
                 exit="exit"

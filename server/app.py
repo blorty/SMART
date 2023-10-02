@@ -5,6 +5,8 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
+import base64
+
 from os import environ
 
 from models import MainCategory, SubCategory, Activity, User, HappyNote
@@ -103,22 +105,32 @@ class UserUsernameResource(Resource):
             return make_response(jsonify(message="Username updated successfully"), 200)
 
 class UserAvatarResource(Resource):
-    def put(self, user_id):
-        user = User.query.get(user_id)
+    def put(self, username):
+        user = User.query.filter_by(username=username).first()
         if not user:
             return make_response(jsonify(error="User not found"), 404)
             
-        uploaded_file = request.files.get('avatar')
-        if uploaded_file:
-            # Handle image upload
-            if not uploaded_file.filename.endswith(('.png', '.jpg', '.jpeg')):
-                return make_response(jsonify(error="Invalid image format"), 400)
-            image_data = uploaded_file.read()
-            user.avatar_data = image_data
+        avatar_file = request.files.get('avatar')
+        if avatar_file:
+            user.avatar_data = avatar_file.read()
             db.session.commit()
             return make_response(jsonify(message="Avatar updated successfully"), 200)
-        else:
-            return make_response(jsonify(error="No avatar provided"), 400)
+        return make_response(jsonify(error="Avatar file is required"), 400)
+    
+    def get(self, username):
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return make_response(jsonify(error="User not found"), 404)
+            
+        avatar_data_encoded = base64.b64encode(user.avatar_data).decode('utf-8') if user.avatar_data else None
+        return make_response(jsonify(avatar=avatar_data_encoded))
+    
+    def options(self, username):
+        response = make_response()
+        response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+        response.headers['Access-Control-Allow-Methods'] = 'PUT'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
 
 
 class Register(Resource):
@@ -312,7 +324,7 @@ class StressManagementActivities(Resource):
 api.add_resource(UserResource, '/user/<int:user_id>')
 api.add_resource(UserPasswordResource, '/user/<string:username>/password')
 api.add_resource(UserUsernameResource, '/user/<int:user_id>/username')
-api.add_resource(UserAvatarResource, '/user/<int:user_id>/avatar')
+api.add_resource(UserAvatarResource, '/user/<string:username>/avatar')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(Register, '/register')

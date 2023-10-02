@@ -187,8 +187,60 @@ const AppContextProvider = ({ children }) => {
             throw new Error(error);
         });
     };    
+
+    const fetchUserAvatar = (username) => {
+        return fetch(`http://localhost:5555/user/${username}/avatar`, {
+            method: 'GET',
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message || 'Failed to fetch avatar.'));
+            }
+            return response.Data();
+        })
+        .catch(error => {
+            console.error('Fetch Avatar Error:', error);
+            throw new Error(error);
+        });
+    }
+
+
+    const updateAvatar = (username, avatarFile) => {
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+        
+        return fetch(`http://localhost:5555/user/${username}/avatar`, {
+            method: 'PUT',
+            body: formData,
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message || 'Failed to update avatar.'));
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Avatar update successful. Fetch the updated avatar.
+            return fetchUserAvatar(username);
+        })
+        .then(avatarData => {
+            // Convert the Data to a data URL
+            const avatarURL = URL.createObjectURL(avatarData);
     
+            // Update the user avatar in the context
+            const updatedUser = { ...user, avatar: avatarURL };
+            setUser(updatedUser);
+        })
+        .catch(error => {
+            console.error('Update Avatar Error:', error);
+            throw new Error(error);
+        });
+    };
     
+
+
     const forgotUsername = (email) => {
         return fetch('http://localhost:5555/user/forgot-username', {
             method: 'POST',
@@ -209,27 +261,7 @@ const AppContextProvider = ({ children }) => {
             throw new Error(error);
         });
     };
-    
-    const updateAvatar = (userId, avatarFile) => {
-        const formData = new FormData();
-        formData.append('avatar', avatarFile);
-    
-        return fetch(`http://localhost:5555/user/avatar/${userId}`, {
-            method: 'PUT',
-            body: formData,
-            credentials: 'include',
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => Promise.reject(data.message || 'Failed to update avatar.'));
-            }
-            return response.json();
-        })
-        .catch(error => {
-            console.error('Update Avatar Error:', error);
-            throw new Error(error);
-        });
-    };
+
 
     return (
         <AppContext.Provider value={{ 

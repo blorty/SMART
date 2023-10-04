@@ -14,7 +14,10 @@ import CardSection from './CardSection';
 
 const Section = (props) => {
     const {children, id} = props;
-
+    
+    const { isLoggedIn } = useContext(AppContext);
+    console.log("Home isLoggedIn state:", isLoggedIn);
+    
     return (
         <motion.section 
             id={id}

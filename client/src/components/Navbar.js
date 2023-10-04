@@ -14,6 +14,7 @@ export const Navbar = () => {
     const [isAvatarHovered, setIsAvatarHovered] = useState(false); 
 
     const { isLoggedIn, user, logout } = useContext(AppContext);
+    console.log("Navbar isLoggedIn state:", isLoggedIn);
 
     const fileInputRef = useRef(null);
     const { updateAvatar } = useContext(AppContext);
@@ -105,10 +106,10 @@ export const Navbar = () => {
                             
                             {user.avatar ? (
                                 <img 
-                                    src={`data:image/png;base64,${user.avatar}`} 
-                                    alt="User Avatar" 
-                                    className={`rounded-full w-full h-full object-cover ${isAvatarHovered ? "opacity-50" : ""}`}
-                                />
+                                src={user.avatar} 
+                                alt="User Avatar" 
+                                className={`rounded-full w-full h-full object-cover ${isAvatarHovered ? "opacity-50" : ""}`}
+                            />
                             ) : (
                                 <div className={`svg-icon rounded-full w-full h-full flex items-center justify-center p-2 ${isAvatarHovered ? "opacity-50" : ""}`}>
                             <svg 

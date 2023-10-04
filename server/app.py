@@ -4,9 +4,9 @@ from flask_restful import Resource
 from flask_cors import CORS
 from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from datetime import timedelta
 
 import base64
-
 from os import environ
 
 from models import MainCategory, SubCategory, Activity, User, HappyNote
@@ -15,11 +15,11 @@ from config import app, db, api
 load_dotenv()
 
 jwt = JWTManager(app)
-
 CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
 
 app.config['JWT_SECRET_KEY'] = environ.get('JWT_SECRET_KEY')
 app.secret_key = environ.get('SECRET_KEY')
+app.permanent_session_lifetime = timedelta(days=1)
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -160,6 +160,7 @@ class Register(Resource):
 
             # Log the user in automatically
             session['user_id'] = new_user.user_id
+            session.permanent = True
             
             # Return the new user's data
             return make_response(jsonify(new_user.serialize()), 201)
@@ -194,6 +195,10 @@ class Login(Resource):
             # Check if the password is correct
             if not user.authenticate(data['password']):
                 return make_response(jsonify(error="Incorrect password"), 401)
+            
+            # Set user_id in session
+            session['user_id'] = user.user_id
+            session.permanent = True 
 
             # JWT Token Logic
             print("JWT Secret Key during token creation:", app.config['JWT_SECRET_KEY'])
@@ -345,7 +350,9 @@ def verify_token():
     current_user = get_jwt_identity()  # This fetches the identity (usually user_id) from the token
     user_data = User.query.get(current_user)
     if not user_data:
+        print("User not found for token")
         return jsonify(error="User not found"), 404
+    print("Token is valid for user:", user_data.username)
     return jsonify(valid=True, user=user_data.serialize()), 200
 
 if __name__ == '__main__':

@@ -342,7 +342,7 @@ api.add_resource(HappyNotes, '/happynotes', '/happynotes/<int:user_id>')
 def protected_function():
     return jsonify(message="You've accessed a protected endpoint!")
 
-@app.route('/verify_token', methods=['POST'])
+@app.route('/verify_token', methods=['GET', 'POST'])  # Add 'GET' here
 @jwt_required()
 def verify_token():
     print("JWT Secret Key during token verification:", app.config['JWT_SECRET_KEY'])

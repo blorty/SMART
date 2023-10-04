@@ -13,11 +13,10 @@ export const Navbar = () => {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isAvatarHovered, setIsAvatarHovered] = useState(false); 
 
-    const { isLoggedIn, user, logout } = useContext(AppContext);
+    const { isLoggedIn, user, logout, updateAvatar } = useContext(AppContext);
     console.log("Navbar isLoggedIn state:", isLoggedIn);
 
     const fileInputRef = useRef(null);
-    const { updateAvatar } = useContext(AppContext);
 
     useEffect(() => {
         if (isLoggedIn) {
@@ -34,20 +33,16 @@ export const Navbar = () => {
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
-        if (file) {
-            // Call the updateAvatar function from AppContext
+        if (file && user) {
             updateAvatar(user.username, file)
                 .then(response => {
-                    // Here you can handle the success, for instance by showing a success message.
-                    // Removed the updateUserInContext call
+                    // Handle success if needed
                 })
                 .catch(error => {
                     console.error("Failed to update avatar:", error);
                 });
         }
     };
-    
-
 
     const handleLogout = () => {
         logout(navigate);
@@ -60,6 +55,7 @@ export const Navbar = () => {
     const toggleLoginModal = () => {
         setIsLoginModalOpen(!isLoginModalOpen);
     };
+
 
     return (
         <>
@@ -80,38 +76,39 @@ export const Navbar = () => {
             <div
                 className={`z-10 fixed top-0 right-0 bottom-0 bg-lightgreen overflow-hidden transition-all flex flex-col ${NavbarBtnOpened ? "w-80" : "w-0"}`}
             >
-{isLoggedIn && (
-    <motion.div
-        className="flex flex-col items-center justify-center gap-1 p-4 mt-8 relative"  // Adjusted margin here
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        variants={{
-            hidden: { opacity: 0, y: "-100vh" },
-            visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeInOut" } },
-            exit: { opacity: 0, y: "100vh", transition: { duration: 0.3, ease: "easeInOut" } },
-        }}
-    >
-        <div 
-            className="pt-12 relative w-40 h-40 cursor-pointer"  // Adjusted size here
-            onMouseEnter={() => setIsAvatarHovered(true)}
-            onMouseLeave={() => setIsAvatarHovered(false)}
-            onClick={handleAvatarClick}
-        >
-                            <div 
-                                className="absolute inset-0 flex items-center justify-center transition-opacity" 
-                            >
-                                {isAvatarHovered && <span className="text-white text-xs">Update Avatar</span>}
-                            </div>
-                            
-                            {user.avatar ? (
-                                <img 
+            {isLoggedIn && user && (
+                <motion.div
+                    className="flex flex-col items-center justify-center gap-1 p-4 mt-8 relative"  
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={{
+                        hidden: { opacity: 0, y: "-100vh" },
+                        visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeInOut" } },
+                        exit: { opacity: 0, y: "100vh", transition: { duration: 0.3, ease: "easeInOut" } },
+                    }}
+                >
+                    {/* Avatar rendering */}
+                    <div 
+                        className="pt-12 relative w-40 h-40 cursor-pointer"
+                        onMouseEnter={() => setIsAvatarHovered(true)}
+                        onMouseLeave={() => setIsAvatarHovered(false)}
+                        onClick={handleAvatarClick}
+                    >
+                        <div 
+                            className="absolute inset-0 flex items-center justify-center transition-opacity" 
+                        >
+                            {isAvatarHovered && <span className="text-white text-xs">Update Avatar</span>}
+                        </div>
+                        
+                        {user.avatar ? (
+                            <img 
                                 src={user.avatar} 
                                 alt="User Avatar" 
                                 className={`rounded-full w-full h-full object-cover ${isAvatarHovered ? "opacity-50" : ""}`}
                             />
-                            ) : (
-                                <div className={`svg-icon rounded-full w-full h-full flex items-center justify-center p-2 ${isAvatarHovered ? "opacity-50" : ""}`}>
+                        ) : (
+                            <div className={`svg-icon rounded-full w-full h-full flex items-center justify-center p-2 ${isAvatarHovered ? "opacity-50" : ""}`}>
                             <svg 
                             className="svg-icon" 
                             viewBox="0 0 20 20"
@@ -124,13 +121,13 @@ export const Navbar = () => {
                                     d="M12.075,10.812c1.358-0.853,2.242-2.507,2.242-4.037c0-2.181-1.795-4.618-4.198-4.618S5.921,4.594,5.921,6.775c0,1.53,0.884,3.185,2.242,4.037c-3.222,0.865-5.6,3.807-5.6,7.298c0,0.23,0.189,0.42,0.42,0.42h14.273c0.23,0,0.42-0.189,0.42-0.42C17.676,14.619,15.297,11.677,12.075,10.812 M6.761,6.775c0-2.162,1.773-3.778,3.358-3.778s3.359,1.616,3.359,3.778c0,2.162-1.774,3.778-3.359,3.778S6.761,8.937,6.761,6.775 M3.415,17.69c0.218-3.51,3.142-6.297,6.704-6.297c3.562,0,6.486,2.787,6.705,6.297H3.415z"
                                 ></path>
                             </svg>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+                    </div>
 
-                        <span className="font-medium text-center w-full">{user.username}</span>
-                    </motion.div>
-                )}
+                    <span className="font-medium text-center w-full">{user.username}</span>
+                </motion.div>
+            )}
                 
                 <div className="flex-1 flex items-start justify-center flex-col gap-6 p-8">
                     {!isLoggedIn ? (

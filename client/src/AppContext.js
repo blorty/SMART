@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 
 
 export const AppContext = createContext();
@@ -13,6 +12,8 @@ const AppContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [authError, setAuthError] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [avatarFetched, setAvatarFetched] = useState(false);
+
 
 
     useEffect(() => {
@@ -52,12 +53,10 @@ const AppContextProvider = ({ children }) => {
         })
         .then(userData => {
             console.log("Saving Token to LocalStorage:", userData.token);
-            Cookies.set('isLoggedIn', true);
-            Cookies.set('user', JSON.stringify(userData.user));
             setIsLoggedIn(true);
             setUser(userData.user);
-            localStorage.setItem('token', userData.token); // This should store the token
-        })        
+            localStorage.setItem('token', userData.token);
+        })               
         .catch(error => {
             console.error('Login Error:', error);
             const errorMessage = error?.message || error?.error || "An error occurred during login.";
@@ -99,16 +98,12 @@ const AppContextProvider = ({ children }) => {
             credentials: 'include',
         })
         .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => Promise.reject(data.message));
-            }
             localStorage.removeItem('token');
-            Cookies.remove('isLoggedIn');
-            Cookies.remove('user');
             setIsLoggedIn(false);
             setUser(null);
             navigate('/');
         })
+        
         .catch(error => {
             console.error('Failed to log out: ', error);
         });
@@ -164,58 +159,52 @@ const AppContextProvider = ({ children }) => {
 
 
     useEffect(() => {
-        setTimeout(() => {
-            console.log("Checking for token in local storage after delay...");
-            const token = localStorage.getItem('token');
-            console.log("Token:", token);
-            const loggedIn = Cookies.get('isLoggedIn');
-            const userCookie = Cookies.get('user');
-            
-            if (token) {
-                fetch('http://localhost:5555/verify_token', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                })
-                .then(response => {
-                    console.log("Received response from token verification:", response);
-                    if (!response.ok) {
-                        throw new Error("Token verification failed");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Token verification result:", data);
-                    if (data.valid && loggedIn && userCookie && userCookie !== 'undefined') {
-                        const parsedUser = JSON.parse(userCookie);
-                        setIsLoggedIn(true);
-                        setUser(parsedUser);
-                        fetchUserAvatar(parsedUser.username)
-                            .catch(error => {
-                                console.error("Error fetching avatar:", error);
-                            });
-                    } else {
-                        localStorage.removeItem('token');
-                        Cookies.remove('isLoggedIn');
-                        Cookies.remove('user');
-                        setIsLoggedIn(false);
-                        setUser(null);
-                    }
-                })
-                .catch(error => {
-                    console.error('Token verification error:', error);
+        if (user && user.username && !avatarFetched) {
+            fetchUserAvatar(user.username);
+            setAvatarFetched(true);  // Set the flag after fetching
+        }
+    }, [user, fetchUserAvatar]);
+
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch('http://localhost:5555/verify_token', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    throw new Error('Token is unauthorized');
+                }
+                if (!response.ok) {
+                    throw new Error('Token verification failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.valid) {
+                    setIsLoggedIn(true);
+                    // Optionally, you can also set the user data here
+                    setUser(data.user);
+                } else {
                     localStorage.removeItem('token');
-                    Cookies.remove('isLoggedIn');
-                    Cookies.remove('user');
                     setIsLoggedIn(false);
                     setUser(null);
-                });
-            }
-        }, 1000);  // 1-second delay added here
-    }, [fetchUserAvatar]);    
+                }
+            })
+            .catch(error => {
+                console.error('Token verification error:', error);
+                localStorage.removeItem('token');
+                setIsLoggedIn(false);
+                setUser(null);
+            });
+        }
+    }, [fetchUserAvatar]);      
 
 
     const updateAvatar = (username, avatarFile) => {

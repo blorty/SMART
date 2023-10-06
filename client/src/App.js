@@ -6,18 +6,18 @@ import Home from './components/Home';
 import { Navbar } from './components/Navbar';
 
 import './App.css';
-import './index.css'
+import './index.css';
 
 function App() {
   return (
-    <AppProvider>
     <Router>
-      <Navbar onSectionChange={() => {}} NavbarBtnOpened={false} setNavbarBtnOpened={() => {}} />
-      <Routes>
-        <Route path="/" element={<Home />} />
-      </Routes>
+      <AppProvider>
+        <Navbar onSectionChange={() => {}} NavbarBtnOpened={false} setNavbarBtnOpened={() => {}} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+        </Routes>
+      </AppProvider>
     </Router>
-    </AppProvider>
   );
 }
 

@@ -96,12 +96,13 @@ const Login = () => {
     
                             {!formik.isSubmitting && (
                                 <motion.button 
-                                    whileHover={{ scale: 1.05 }}
-                                    type="submit"
-                                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-mattecoal hover:bg-mattebrown focus:outline-none focus:ring-2 focus:ring-mattecoal"
-                                >
-                                    Login
-                                </motion.button>
+                                whileHover={{ scale: 1.05 }}
+                                type="submit"
+                                disabled={formik.isSubmitting}  // Disable button during form submission
+                                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-mattecoal hover:bg-mattebrown focus:outline-none focus:ring-2 focus:ring-mattecoal ${formik.isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {formik.isSubmitting ? 'Logging in...' : 'Login'}
+                            </motion.button>
                             )}
                         </>
                     )}

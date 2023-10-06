@@ -1,68 +1,19 @@
-import React, { createContext, useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+import defaultavatar from './assets/defaultavatar.png';
 
 export const AppContext = createContext();
 
 const AppContextProvider = ({ children }) => {
+    const navigate = useNavigate();
+
     const [relaxationTechniques, setRelaxationTechniques] = useState([]);
     const [stressManagementActivities, setStressManagementActivities] = useState([]);
     const [user, setUser] = useState(null);
     const [authError, setAuthError] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const loggedIn = Cookies.get('isLoggedIn');
-        const userCookie = Cookies.get('user');
-        
-        if (token) {
-            // If there's a token in local storage, verify its validity with the backend
-            fetch('http://localhost:5555/verify_token', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Token verification failed");
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.valid && loggedIn && userCookie && userCookie !== 'undefined') {
-                    try {
-                        const parsedUser = JSON.parse(userCookie);
-                        setIsLoggedIn(true);
-                        setUser(parsedUser);
-                    } catch (e) {
-                        console.error("Error parsing user cookie:", e.message);
-                    }
-                } else {
-                    // Token is invalid or expired, clear local storage and cookies
-                    localStorage.removeItem('token');
-                    Cookies.remove('isLoggedIn');
-                    Cookies.remove('user');
-                    setIsLoggedIn(false);
-                    setUser(null);
-                }
-            })
-            .catch(error => {
-                console.error('Token verification error:', error);
-                localStorage.removeItem('token');
-                Cookies.remove('isLoggedIn');
-                Cookies.remove('user');
-                setIsLoggedIn(false);
-                setUser(null);
-            });
-        }
-    
-    }, []);
-    
+    const [avatarFetched, setAvatarFetched] = useState(false);
 
 
     useEffect(() => {
@@ -82,7 +33,7 @@ const AppContextProvider = ({ children }) => {
     }, []);
 
 
-    const login = (values, navigate) => {
+    const login = (values) => {
         return fetch('http://localhost:5555/login', {
             method: 'POST',
             headers: {
@@ -101,12 +52,10 @@ const AppContextProvider = ({ children }) => {
             return response.json();
         })
         .then(userData => {
-            Cookies.set('isLoggedIn', true);
-            Cookies.set('user', JSON.stringify(userData.user));
             setIsLoggedIn(true);
             setUser(userData.user);
             localStorage.setItem('token', userData.token);
-        })
+        })               
         .catch(error => {
             console.error('Login Error:', error);
             const errorMessage = error?.message || error?.error || "An error occurred during login.";
@@ -116,7 +65,7 @@ const AppContextProvider = ({ children }) => {
     };       
 
 
-    const register = (values, navigate) => {
+    const register = (values) => {
         fetch('http://localhost:5555/register', {
             method: 'POST',
             headers: {
@@ -142,30 +91,25 @@ const AppContextProvider = ({ children }) => {
     };
 
 
-    const logout = (navigate) => {
+    const logout = () => {
         fetch('http://localhost:5555/logout', {
             method: 'POST',
             credentials: 'include',
         })
         .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => Promise.reject(data.message));
-            }
             localStorage.removeItem('token');
-            Cookies.remove('isLoggedIn');
-            Cookies.remove('user');
             setIsLoggedIn(false);
             setUser(null);
             navigate('/');
         })
+        
         .catch(error => {
             console.error('Failed to log out: ', error);
         });
     };
-    
+
 
     const resetPassword = (values) => {
-        console.log("Attempting to reset password with values:", values);
         return fetch(`http://localhost:5555/user/${values.username}/password`, {  // Use username in the URL
             method: 'PUT',
             headers: {
@@ -174,9 +118,7 @@ const AppContextProvider = ({ children }) => {
             body: JSON.stringify(values),
             credentials: 'include',
         })
-        .then(response => {
-            console.log("Received response from server:", response);
-    
+        .then(response => {    
             if (!response.ok) {
                 return response.json().then(data => Promise.reject(data.message || 'Failed to reset password.'));
             }
@@ -187,8 +129,111 @@ const AppContextProvider = ({ children }) => {
             throw new Error(error);
         });
     };    
+
+
+    const fetchUserAvatar = useCallback((username) => {
+        return fetch(`http://localhost:5555/user/${username}/avatar`, {
+            method: 'GET',
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message || 'Failed to fetch avatar.'));
+            }
+            return response.json();
+        })
+        .then(avatarData => {
+            const prefix = "data:image/png;base64,";
+            const avatarURL = avatarData.avatar 
+                ? (avatarData.avatar.startsWith(prefix) ? avatarData.avatar : prefix + avatarData.avatar)
+                : defaultavatar; // Use the imported default avatar if the avatar data is null or undefined
+            setUser(user => ({ ...user, avatar: avatarURL }));
+        })
+        .catch(error => {
+            console.error('Fetch Avatar Error:', error);
+            throw new Error(error);
+        });
+    }, [setUser]);
     
-    
+
+
+    useEffect(() => {
+        // Fetch the user's avatar if the user is logged in and the avatar has not been fetched yet
+        // Avoids re-fetching if the avatar has already been fetched (controlled by avatarFetched state)
+        if (user && user.username && !avatarFetched) {
+            fetchUserAvatar(user.username);
+            setAvatarFetched(true);  // Set the flag after fetching
+        }
+    }, [user, fetchUserAvatar]);
+
+
+    useEffect(() => {
+        // Verify the user's JWT token stored in local storage when the component mounts
+        // If the token is valid, set the user as logged in and update the user state
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch('http://localhost:5555/verify_token', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    throw new Error('Token is unauthorized');
+                }
+                if (!response.ok) {
+                    throw new Error('Token verification failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.valid) {
+                    setIsLoggedIn(true);
+                    setUser(data.user);
+                } else {
+                    localStorage.removeItem('token');
+                    setIsLoggedIn(false);
+                    setUser(null);
+                }
+            })
+            .catch(error => {
+                localStorage.removeItem('token');
+                setIsLoggedIn(false);
+                setUser(null);
+            });
+        }
+    }, [fetchUserAvatar]);      
+
+
+    const updateAvatar = (username, avatarFile) => {
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+        
+        return fetch(`http://localhost:5555/user/${username}/avatar`, {
+            method: 'PUT',
+            body: formData,
+            credentials: 'include',
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => Promise.reject(data.message || 'Failed to update avatar.'));
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Avatar update successful. Fetch the updated avatar.
+            return fetchUserAvatar(username);
+        })
+        .catch(error => {
+            console.error('Update Avatar Error:', error);
+            throw new Error(error);
+        });
+    };    
+
+
     const forgotUsername = (email) => {
         return fetch('http://localhost:5555/user/forgot-username', {
             method: 'POST',
@@ -209,27 +254,7 @@ const AppContextProvider = ({ children }) => {
             throw new Error(error);
         });
     };
-    
-    const updateAvatar = (userId, avatarFile) => {
-        const formData = new FormData();
-        formData.append('avatar', avatarFile);
-    
-        return fetch(`http://localhost:5555/user/avatar/${userId}`, {
-            method: 'PUT',
-            body: formData,
-            credentials: 'include',
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => Promise.reject(data.message || 'Failed to update avatar.'));
-            }
-            return response.json();
-        })
-        .catch(error => {
-            console.error('Update Avatar Error:', error);
-            throw new Error(error);
-        });
-    };
+
 
     return (
         <AppContext.Provider value={{ 

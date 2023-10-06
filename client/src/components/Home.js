@@ -6,6 +6,8 @@ import { AppContext } from '../AppContext';
 import Login from './Login';
 import ForgotPassword from './ForgotPassword';
 
+import logo from '../assets/logo.png';
+
 // import Carousel from './Carousel';
 // import 'react-multi-carousel/lib/styles.css'
 
@@ -16,7 +18,6 @@ const Section = (props) => {
     const {children, id} = props;
     
     const { isLoggedIn } = useContext(AppContext);
-    console.log("Home isLoggedIn state:", isLoggedIn);
     
     return (
         <motion.section 
@@ -110,20 +111,18 @@ const Home = () => {
 
     return (
         <div className="flex flex-col items-center w-screen relative">
-            <motion.div 
-                className="absolute top-0 left-1/2 transform -translate-x-1/2 md:mt-5 sm:mt-3 mt-1 z-50 text-lg md:text-xl lg:text-2xl"
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.2 }}
-            >
-                <Link 
-                    to="/" 
-                    className="hover:text-lightgreen drop-shadow-lg font-bold cursor-pointer"
-                >
-                    SMART
-                </Link>
-            </motion.div>
-            
+
+        <motion.div 
+            className="absolute top-0 left-1/2 transform -translate-x-1/2 md:mt-5 sm:mt-3 mt-1 z-50 flex items-center justify-center"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.2 }}
+        >
+            <Link to="/">
+                <img src={logo} alt="SMART Logo" className="hover:opacity-80 drop-shadow-lg w-32" />
+            </Link>
+        </motion.div>
+
             <motion.div 
                 id='sections-container' 
                 className="flex flex-col items-center w-full h-full overflow-y-scroll scroll-snap-type y mandatory"

@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import defaultavatar from './assets/defaultavatar.png';
 
 export const AppContext = createContext();
 
@@ -13,7 +14,6 @@ const AppContextProvider = ({ children }) => {
     const [authError, setAuthError] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [avatarFetched, setAvatarFetched] = useState(false);
-
 
 
     useEffect(() => {
@@ -52,7 +52,6 @@ const AppContextProvider = ({ children }) => {
             return response.json();
         })
         .then(userData => {
-            console.log("Saving Token to LocalStorage:", userData.token);
             setIsLoggedIn(true);
             setUser(userData.user);
             localStorage.setItem('token', userData.token);
@@ -111,7 +110,6 @@ const AppContextProvider = ({ children }) => {
 
 
     const resetPassword = (values) => {
-        console.log("Attempting to reset password with values:", values);
         return fetch(`http://localhost:5555/user/${values.username}/password`, {  // Use username in the URL
             method: 'PUT',
             headers: {
@@ -120,9 +118,7 @@ const AppContextProvider = ({ children }) => {
             body: JSON.stringify(values),
             credentials: 'include',
         })
-        .then(response => {
-            console.log("Received response from server:", response);
-    
+        .then(response => {    
             if (!response.ok) {
                 return response.json().then(data => Promise.reject(data.message || 'Failed to reset password.'));
             }
@@ -148,7 +144,9 @@ const AppContextProvider = ({ children }) => {
         })
         .then(avatarData => {
             const prefix = "data:image/png;base64,";
-            const avatarURL = avatarData.avatar.startsWith(prefix) ? avatarData.avatar : prefix + avatarData.avatar;
+            const avatarURL = avatarData.avatar 
+                ? (avatarData.avatar.startsWith(prefix) ? avatarData.avatar : prefix + avatarData.avatar)
+                : defaultavatar; // Use the imported default avatar if the avatar data is null or undefined
             setUser(user => ({ ...user, avatar: avatarURL }));
         })
         .catch(error => {
@@ -156,9 +154,12 @@ const AppContextProvider = ({ children }) => {
             throw new Error(error);
         });
     }, [setUser]);
+    
 
 
     useEffect(() => {
+        // Fetch the user's avatar if the user is logged in and the avatar has not been fetched yet
+        // Avoids re-fetching if the avatar has already been fetched (controlled by avatarFetched state)
         if (user && user.username && !avatarFetched) {
             fetchUserAvatar(user.username);
             setAvatarFetched(true);  // Set the flag after fetching
@@ -167,6 +168,8 @@ const AppContextProvider = ({ children }) => {
 
 
     useEffect(() => {
+        // Verify the user's JWT token stored in local storage when the component mounts
+        // If the token is valid, set the user as logged in and update the user state
         const token = localStorage.getItem('token');
         if (token) {
             fetch('http://localhost:5555/verify_token', {
@@ -189,7 +192,6 @@ const AppContextProvider = ({ children }) => {
             .then(data => {
                 if (data.valid) {
                     setIsLoggedIn(true);
-                    // Optionally, you can also set the user data here
                     setUser(data.user);
                 } else {
                     localStorage.removeItem('token');
@@ -198,7 +200,6 @@ const AppContextProvider = ({ children }) => {
                 }
             })
             .catch(error => {
-                console.error('Token verification error:', error);
                 localStorage.removeItem('token');
                 setIsLoggedIn(false);
                 setUser(null);

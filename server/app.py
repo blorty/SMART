@@ -19,7 +19,7 @@ CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
 
 app.config['JWT_SECRET_KEY'] = environ.get('JWT_SECRET_KEY')
 app.secret_key = environ.get('SECRET_KEY')
-app.permanent_session_lifetime = timedelta(days=1)
+app.permanent_session_lifetime = timedelta(days=7)
 
 @app.errorhandler(Exception)
 def handle_exception(e):

@@ -2,20 +2,22 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import Modal from './Modal';
 import Register from './Register';
 import Login from './Login';
+import UserDashboard from './UserDashboard';
 import { AppContext } from '../AppContext';
 import { Link as ScrollLink } from 'react-scroll';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+
+import defaultavatar from '../assets/defaultavatar.png'
 
 export const Navbar = () => {
     const [NavbarBtnOpened, setNavbarBtnOpened] = useState(false);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isAvatarHovered, setIsAvatarHovered] = useState(false); 
+    const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false); 
 
     const { isLoggedIn, user, logout, updateAvatar } = useContext(AppContext);
-    console.log("Navbar isLoggedIn state:", isLoggedIn);
-
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -28,7 +30,7 @@ export const Navbar = () => {
     const navigate = useNavigate();
 
     const handleAvatarClick = () => {
-        fileInputRef.current.click();
+        setIsUserDashboardOpen(true);
     };
 
     const handleFileChange = (event) => {
@@ -55,7 +57,6 @@ export const Navbar = () => {
     const toggleLoginModal = () => {
         setIsLoginModalOpen(!isLoginModalOpen);
     };
-
 
     return (
         <>
@@ -98,7 +99,7 @@ export const Navbar = () => {
                         <div 
                             className="absolute inset-0 flex items-center justify-center transition-opacity" 
                         >
-                            {isAvatarHovered && <span className="text-white text-xs">Update Avatar</span>}
+                            {isAvatarHovered && <span className="text-white text-xs">Update Profile</span>}
                         </div>
                         
                         {user.avatar ? (
@@ -108,21 +109,13 @@ export const Navbar = () => {
                                 className={`rounded-full w-full h-full object-cover ${isAvatarHovered ? "opacity-50" : ""}`}
                             />
                         ) : (
-                            <div className={`svg-icon rounded-full w-full h-full flex items-center justify-center p-2 ${isAvatarHovered ? "opacity-50" : ""}`}>
-                            <svg 
-                            className="svg-icon" 
-                            viewBox="0 0 20 20"
-                            style={{ opacity: isAvatarHovered ? 0.5 : 1 }} 
-                            onMouseEnter={() => setIsAvatarHovered(true)}
-                            onMouseLeave={() => setIsAvatarHovered(false)}
-                            onClick={handleAvatarClick}
-                        >
-                                <path 
-                                    d="M12.075,10.812c1.358-0.853,2.242-2.507,2.242-4.037c0-2.181-1.795-4.618-4.198-4.618S5.921,4.594,5.921,6.775c0,1.53,0.884,3.185,2.242,4.037c-3.222,0.865-5.6,3.807-5.6,7.298c0,0.23,0.189,0.42,0.42,0.42h14.273c0.23,0,0.42-0.189,0.42-0.42C17.676,14.619,15.297,11.677,12.075,10.812 M6.761,6.775c0-2.162,1.773-3.778,3.358-3.778s3.359,1.616,3.359,3.778c0,2.162-1.774,3.778-3.359,3.778S6.761,8.937,6.761,6.775 M3.415,17.69c0.218-3.51,3.142-6.297,6.704-6.297c3.562,0,6.486,2.787,6.705,6.297H3.415z"
-                                ></path>
-                            </svg>
-                            </div>
+                            <img 
+                                src={defaultavatar} 
+                                alt="Default Avatar" 
+                                className={`rounded-full w-full h-full object-cover ${isAvatarHovered ? "opacity-50" : ""}`}
+                            />
                         )}
+
                     </div>
 
                     <span className="font-medium text-center w-full">{user.username}</span>
@@ -152,6 +145,10 @@ export const Navbar = () => {
                 onChange={handleFileChange}
             />
 
+            <Modal isOpen={isUserDashboardOpen} close={() => setIsUserDashboardOpen(false)}>
+                <UserDashboard close={() => setIsUserDashboardOpen(false)} />
+            </Modal>
+            
             <Modal isOpen={isRegisterModalOpen} close={toggleRegisterModal}>
                 <Register />
             </Modal>
